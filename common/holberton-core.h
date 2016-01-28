@@ -11,9 +11,12 @@ typedef char  int8;
 
 #define CORE_FILE_MAGIC						0xcacbcdce
 
+#define CORE_FLAG_BIG_ENDIAN			1
+
 typedef struct core_file_header_s {
   int32 magic;
   int32 version;
+	int32	flags;
 
   char  name[CORE_FILE_NAME_MAX_SIZE];
   int32 code_size;
