@@ -58,18 +58,6 @@ static opcode_t g_opcodes[] = {
 			CORE_ARG_TYPE_IMM
 		}
 	},
-	{0x0d, "ldi",  1, 3, {
-      CORE_ARG_TYPE_REG | CORE_ARG_TYPE_IMM | CORE_ARG_TYPE_ADD,
-			CORE_ARG_TYPE_IMM | CORE_ARG_TYPE_REG,
-			CORE_ARG_TYPE_REG
-    }
-  },
-  {0x0e, "sti",  1, 3, {
-      CORE_ARG_TYPE_REG,
-			CORE_ARG_TYPE_REG | CORE_ARG_TYPE_IMM | CORE_ARG_TYPE_ADD,
-      CORE_ARG_TYPE_IMM | CORE_ARG_TYPE_REG,
-    }
-  },
 	{0, 0}
 };
 

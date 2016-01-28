@@ -28,28 +28,133 @@ In a normal system, all processes will not have the same memory, for obvious sec
 
 Each core is a binary file that contains a bunch of instructions. These instructions are well defined ( later in this documents )
 
-(1) add
-in(register|immediate), in(register|immediate), out(register)
+## building project
+	1. git clone the repository to your local computer
+	2. got to in the local repository folder
+	3. got to "platforms" folder
+	4. depending on your OS :
+		* linux 	: ./premake5.linux gmake
+		* osx   	: ./premake5.osx gmake
+		* windows : premake5.exe vs2015 ( or vs2013 etc. )
+		be sure to check that the binary have exec right ( chmod +x )
+	5. got to folder "build", from the local repository folder
+	6. on linux, osx, execute "make", this should create the binary ( in bin/Debug or bin/Release)
+	7. on windows, open HolbertonWar.sln
 
-(2) sub
-in(register|immediate), in(register|immediate), out(register)
+## instructions set
 
-(3) and
-in(register|immediate), in(register|immediate), out(register)
+### add
 
-(4) or
-in(register|immediate), in(register|immediate), out(register)
+	in(register|immediate) value
+	in(register|immediate) value
+	out(register) where to write the result
 
-(5) jnz
-in(register|immediate), in(register|immediate), out(register)
+execute an **add** between in(1) and in(2), put the result in out(1)
+```
+	out(1) = in(1) + in(2)
+```
+### sub
 
-(6) ld
-in(immediate|address), out(register)
+	in(register|immediate) value
+	in(register|immediate) value
+	out(register) where to write the result
 
-(7) st
-in(register), out(address|register)
+execute a **sub** between in(1) and in(2), put the result in out(1)
+```
+	out(1) = in(1) - in(2)
+```
+### and
+
+	*	in(register|immediate) value
+	* in(register|immediate) value
+	* out(register) where to write the result
+
+execute a **and** between in(1) and in(2), put the result in out(1)
+```
+	out(1) = in(1) & in(2)
+```
+### or
+
+	in(register|immediate) value
+	in(register|immediate) value
+	out(register) where to write the result
+
+execute a **or** between in(1) and in(2), put the result in out(1)
+```
+	out(1) = in(1) | in(2)
+```
+### xor
+
+	in(register|immediate) value
+	in(register|immediate) value
+	out(register) where to write the result
+
+execute a **xor** between in(1) and in(2), put the result in out(1)
+```
+		out(1) = in(1) ^ in(2)
+```
+
+### jnz
+
+	in(immediate) offset of the jump
+
+add in(1) to caller PC **if** zero flag set to 1.
 
 
-pc
-reg 16
-zero flag 1
+### jmp
+
+	in(immediate) offset of the jump
+
+add in(1) to caller PC.
+
+
+### ld
+
+	in(immediate|address|register) value to read.
+	out(register) which register to put the read value.
+
+
+Load value at address PC + in(1) from memory to out(1) register.
+Modify zero flag.
+
+### st
+
+	in(register) which register contains the value to write
+	out(register|immediate) where to write.
+
+Store in(1) register value to PC+out(1) address in memory.
+Modify zero flag.
+
+### fork
+
+	in(immediate) offset to add to caller PC
+
+Create a new process, copying the registers and flags from the caller, the new process PC is caller PC + in(1)
+
+### die
+
+The process that execute this commands dies.
+
+### live
+
+	in(immediate) core id
+
+Reset the number of cycles until the process dies, set the live counter for core if to the current cycle.
+
+### ldi
+
+	in(immediate|address|register) address of value to read.
+	in(immediate|register) offset to add in(1)
+	out(register) which register to put the read value.
+
+Load value at address PC + in(1) + in(2) from memory, write to out(1) register.
+Modify zero flag.
+
+### sti
+
+	in(register) which register contains the value to write
+	out(immediate|address|register) address of where to write.
+	out(immediate|register) offset to add out(1)
+
+Store in(1) register value to PC+out(1)+out(2) address in memory.
+Modify zero flag.
