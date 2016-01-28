@@ -4,16 +4,6 @@
 #include <errno.h>
 #include "asm.h"
 
-
-
-
-
-
-
-
-///////////////////////////////////////////////////////////////////////////////
-
-
 char* generate_output_file_name(char* input_file_name) {
   int   len   = strlen(input_file_name);
   int   split = len - 1;
@@ -34,7 +24,7 @@ char* generate_output_file_name(char* input_file_name) {
   return output_file_name;
 }
 
-int find_label(char* label_name, generator_t* generator, int32 type) {
+int label_get_offset(char* label_name, generator_t* generator, int32 type) {
 	label_t* label = label_find_in_list(label_name, generator->labels);
 	if (label) {
 		return label->opcode_offset - generator->core.code_size;
@@ -53,8 +43,9 @@ int find_label(char* label_name, generator_t* generator, int32 type) {
 static int32 parse_number(generator_t* generator, char* value, int32 type) {
 	int32 ret;
 	char* end;
+
 	if (*value == ':') {
-		return find_label(value, generator, type);
+		return label_get_offset(value, generator, type);
 	}
 
 	if (*value == 'b') {
@@ -62,7 +53,6 @@ static int32 parse_number(generator_t* generator, char* value, int32 type) {
 	} else {
 		ret = strtol(value, &end, 0);
 	}
-
 	if (*end != 0) {
 		generator->error = ASM_INVALID_NUMBER;
 	}
@@ -77,7 +67,6 @@ void generate_opcode(opcode_t* opcode, char** output, int count, generator_t* ge
 	else {
 		int* arg_type = opcode->arg_type;
 		char* opcode_type;
-
 
 		generator_write8(generator, opcode->opcode);
 		opcode_type = generator_write8(generator, 0);
@@ -179,7 +168,6 @@ void write_output_file(char* input_file_name, generator_t* generator) {
 		generator_write32(generator, CORE_FILE_MAGIC);
 		generator_write32(generator, CORE_FILE_VERSION);
 		generator_write32(generator, generator->core.flags);
-
 		for (i = 0; i < CORE_FILE_NAME_MAX_SIZE; ++i)
 			generator_write8(generator, generator->core.name[i]);
 		generator_write32(generator, generator->core.code_size);
@@ -194,8 +182,8 @@ void handle_forward_labels(generator_t* generator) {
 
 	while (forwards && generator->error == ASM_OK) {
 		label_t* forward = (label_t*) forwards->data;
-
 		label_t* label = label_find_in_list(forward->name, generator->labels);
+
 		if (!label) {
 			fprintf(stderr, "label %s not found line %d\n", forward->name, forward->line);
 			generator->error = ASM_LABEL_NOT_FOUND;
@@ -221,8 +209,10 @@ int assemble(char* input_file_name) {
   if (input) {
 		generator_allocate(&generator);
 		generator.byte_code_base = sizeof(core_file_header_t);
-		while (fgets(line, 1024, input) && generator.error == ASM_OK) {
+		while (!feof(input) && generator.error == ASM_OK) {
 			char* output[10];
+
+			fgets(line, 1024, input);
 			generator.current_line++;
 			int count = parse(line, output, 10);
 			if (count > 0) {
@@ -238,12 +228,11 @@ int assemble(char* input_file_name) {
 		if (generator.forwards) {
 			handle_forward_labels(&generator);
 		}
-
 		if (generator.error == ASM_OK) {
 			write_output_file(input_file_name, &generator);
 		}
-
 		generator_destroy(&generator);
+
 		return generator.error;
   } else {
 		fprintf(stderr, "ERROR: cannot open input file %s.\n", input_file_name);
@@ -256,6 +245,7 @@ int main(int ac, char** av) {
   int i;
 
   for (i = 1; i < ac; i++) {
+		printf("assembling %s\n", av[i]);
     assemble(av[i]);
   }
 	return ASM_OK;
