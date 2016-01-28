@@ -56,6 +56,8 @@ int   parse(char* line, char** output, int max)
 		case 4:
 			if (IS_SEP(c))
 				*line = 0, state = 3;
+			if (IS_SPACE(c))
+				*line = 0;
 			break;
 		default:
 			return -1;

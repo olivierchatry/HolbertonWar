@@ -2,11 +2,18 @@
 
 .name Slug
 
-ld %0b0c0d0e,r2
-:start
-st :start, -64
-st r2, %64
-fork 0 ; simple fork bomb
-live r1
+sti r1, :live, 2
+ld %:live,r2
+ldi %:live, 3,r3
 
-jmp start
+:start
+st r2, :write_here
+sti r3, 4, :write_here
+
+fork :write_here ; simple fork bomb
+:live
+live 0xff00ff00
+jmp :start
+
+:write_here
+; well

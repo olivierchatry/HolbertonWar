@@ -36,24 +36,40 @@ static opcode_t g_opcodes[] = {
     },
   },
   {0x07, "jmp", 1, 1, {
-      CORE_ARG_TYPE_REG | CORE_ARG_TYPE_IMM
+      CORE_ARG_TYPE_IMM
     },
   },
   {0x08, "ld",  1, 2, {
-      CORE_ARG_TYPE_ADD | CORE_ARG_TYPE_IMM, CORE_ARG_TYPE_REG
+      CORE_ARG_TYPE_ADD | CORE_ARG_TYPE_IMM | CORE_ARG_TYPE_REG,
+			CORE_ARG_TYPE_REG
     }
   },
   {0x09, "st",  1, 2, {
       CORE_ARG_TYPE_REG,
-      CORE_ARG_TYPE_REG | CORE_ARG_TYPE_ADD
-    }
-  },
-  {0x0a, "fork",  1, 1, {
       CORE_ARG_TYPE_REG | CORE_ARG_TYPE_IMM
     }
   },
+  {0x0a, "fork",  1, 1, {
+      CORE_ARG_TYPE_IMM
+    }
+  },
   {0x0b, "die", 1, 0},
-  {0x0c, "live", 1, 1, {CORE_ARG_TYPE_REG}},
+  {0x0c, "live", 1, 1, {
+			CORE_ARG_TYPE_IMM
+		}
+	},
+	{0x0d, "ldi",  1, 3, {
+      CORE_ARG_TYPE_REG | CORE_ARG_TYPE_IMM | CORE_ARG_TYPE_ADD,
+			CORE_ARG_TYPE_IMM | CORE_ARG_TYPE_REG,
+			CORE_ARG_TYPE_REG
+    }
+  },
+  {0x0e, "sti",  1, 3, {
+      CORE_ARG_TYPE_REG,
+			CORE_ARG_TYPE_REG | CORE_ARG_TYPE_IMM | CORE_ARG_TYPE_ADD,
+      CORE_ARG_TYPE_IMM | CORE_ARG_TYPE_REG,
+    }
+  },
 	{0, 0}
 };
 

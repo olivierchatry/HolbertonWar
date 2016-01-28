@@ -3,6 +3,16 @@
 #include "asm.h"
 
 
+label_t* label_forward_create(char* name, int32 offset, int32 opcode_offset, int32 type, int32 line) {
+	label_t* label = (label_t*)malloc(sizeof(label_t));
+	label->name = strdup(name);
+	label->offset = offset;
+	label->opcode_offset = opcode_offset;
+	label->type = type;
+	label->line = line;
+	return label;
+}
+
 label_t* label_create(char* name, int32 offset, int32 opcode_offset) {
 	label_t* label = (label_t*)malloc(sizeof(label_t));
 	label->name = strdup(name);
