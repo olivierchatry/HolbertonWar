@@ -26,6 +26,7 @@ typedef struct core_file_header_s {
 
 #define CORE_ASM_ADD	'%'
 #define CORE_ASM_SEP	','
+#define CORE_ASM_COMMENT ';'
 
 typedef struct opcode_s {
   int8   opcode;
