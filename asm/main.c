@@ -163,12 +163,10 @@ void write_output_file(char* input_file_name, generator_t* generator) {
 
 		generator->byte_code_base = 0;
 		generator->byte_code_offset = 0;
-		if (generator->write_big_endian) {
-			generator->core.flags = CORE_FLAG_BIG_ENDIAN;
-		}
+
 		generator_write32(generator, CORE_FILE_MAGIC);
 		generator_write32(generator, CORE_FILE_VERSION);
-		generator_write32(generator, generator->core.flags);
+
 		for (i = 0; i < CORE_FILE_NAME_MAX_SIZE; ++i) {
 			generator_write8(generator, generator->core.name[i]);
 		}

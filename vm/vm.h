@@ -45,7 +45,7 @@ typedef struct vm_s
 {
 	int8*		memory;
 	int32		memory_size;
-
+	int32		memory_modulo;
 	int32		live_count;
 	int32		live_total;
 

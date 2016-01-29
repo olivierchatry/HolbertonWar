@@ -4,6 +4,8 @@
 #include "core.h"
 #include "vm.h"
 
+#include "../common/utils.h"
+#include "../common/memory_access.h"
 
 struct s_core_load_informations {
 	int32	address;
@@ -43,7 +45,6 @@ int load_cores(vm_t* vm, int ac, char** av) {
 		}
 	}
 
-
 	for (i = 0; i < current_core; ++i) {
 		if (!infos[i].have_address) {
 			infos[i].address = (VM_MEMORY_SIZE / current_core) * i;
@@ -57,6 +58,8 @@ int load_cores(vm_t* vm, int ac, char** av) {
 
 int main(int ac, char** av) {
 	vm_t*	vm		= vm_initialize();
+
+	memory_access_initialize(0);
 
 	if (load_cores(vm, ac, av) <= 0) {
 		return -1;

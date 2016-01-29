@@ -3,7 +3,7 @@
 #include <string.h>
 #include "vm.h"
 #include "core.h"
-
+#include "../common/memory_access.h"
 
 vm_t* vm_initialize() {
 	vm_t* vm = (vm_t*) malloc(sizeof(vm_t));
@@ -163,7 +163,7 @@ opcode_t* vm_get_opcode(vm_t* vm, process_t* process) {
 }
 
 
-int 				vm_check_opcode(vm_t* vm, process_t* process) {
+int 				vm_check_opcode(vm_t* vm, process_t* process, int* args, int* regs, int modulo) {
 	int i = 0;
 	int map[4] = {0, OP_ARG_TYPE_REG, OP_ARG_TYPE_IMM, OP_ARG_TYPE_ADD};
 
@@ -181,14 +181,24 @@ int 				vm_check_opcode(vm_t* vm, process_t* process) {
 			int type = map[ encode ];
 			if ( (type & process->current_opcode->arg_type[i]) == 0 )
 				return VM_ERROR_ENCODING;
-			if ( type == OP_ARG_TYPE_IMM )
-			 	pc += 4;
-			else if ( type == OP_ARG_TYPE_ADD )
+			if ( type == OP_ARG_TYPE_IMM ) {
+				args[i] = memory_read32(vm->memory, pc, vm->memory_size);
+				regs[i] = -1;
+				pc += 4;
+			}
+			else if ( type == OP_ARG_TYPE_ADD ) {
+				regs[i] = memory_read16(vm->memory, pc, vm->memory_size);
+				args[i] = process->pc + regs[i] % modulo;
+				if (args[i] < 0) args[i] += vm->memory_size;
+				args[i] = memory_read32(vm->memory, args[i], vm->memory_size);
 				pc += 2;
+			}
 			else {
 				int8 reg = vm->memory[pc++];
-				if (reg < 0 || reg >= CORE_REGISTER_COUNT)
+				if (reg <= 0 || reg > CORE_REGISTER_COUNT)
 					return VM_ERROR_REGISTER;
+				args[i] = process->reg[reg - 1];
+				regs[i] = reg - 1;
 			}
 		}
 		process->pc = pc;
@@ -199,23 +209,50 @@ int 				vm_check_opcode(vm_t* vm, process_t* process) {
 
 int 				vm_execute(vm_t* vm, process_t* process) {
 	int8				encoding;
+	int32				pc;
 	int32   		offset = 2;
-	int32				arg1, arg2, arg3;
+	int32				args[4], regs[4];
 	process_t* 	new_process;
 
+	for (int i =0; i < 16; ++i) {
+		printf("r%d=%.8X ", i + 1, process->reg[i]);
+	}
+	printf("\n");
+	for (int i =0; i < 80; ++i) {
+		printf("%.2X ", (unsigned char) vm->memory[i]);
+	}
+	printf("\n\n");
+
+	pc = process->pc;
 	opcode_t* op = vm_get_opcode(vm, process);
-	if (op) {
-		printf("%d => %s \n", process->pc, op->mnemonic);
+	int32	ret = vm_check_opcode(vm, process, args, regs, VM_MEMORY_MODULO);
+
+	if (ret == VM_OK) {
+		switch(op->opcode) {
+		case 0x08:
+			process->reg[regs[1]] = args[0];
+			break;
+		case 0x09:
+			memory_write32(args[0], vm->memory, pc + args[1] % VM_MEMORY_MODULO, vm->memory_size);
+			break;
+		case 0x0e:
+			memory_write32(args[0], vm->memory, pc + (args[1] + args[2]) % VM_MEMORY_MODULO, vm->memory_size);
+			break;
+		case 0x0d:
+			process->reg[regs[2]] = memory_read32(vm->memory, pc + (args[0] + args[1]) % VM_MEMORY_MODULO, vm->memory_size);
+			break;
+		default:
+			// ret = VM_ERROR_OPCODE;
+			break;
+		}
+		// process->pc = process->pc + 1;
 	}
 
-	int32	ret = vm_check_opcode(vm, process);
-	if (ret == VM_OK) {
-		// process->pc = process->pc + 1;
-	} else {
+	if (ret != VM_OK) {
+		exit(0);
 		process->pc = process->pc + 1;
 	}
 
 	VM_MEMORY_BOUND(process->pc);
-
 	return ret;
 }

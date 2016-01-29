@@ -46,9 +46,9 @@ core_t* 	core_load_from_file(const char* file_name) {
 	core_t* core = NULL;
 
 	int magic;
+
 	if (_read(fd, &magic, 4) == 4)
 	{
-		printf("%x %x\n", magic, CORE_FILE_MAGIC);
 		if (magic == CORE_FILE_MAGIC)
 		{
 			long size;

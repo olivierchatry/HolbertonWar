@@ -46,7 +46,7 @@ static opcode_t g_opcodes[] = {
   },
   {0x09, "st",  1, 2, {
       OP_ARG_TYPE_REG,
-      OP_ARG_TYPE_REG | OP_ARG_TYPE_IMM
+      OP_ARG_TYPE_IMM
     }
   },
   {0x0a, "fork",  1, 1, {
