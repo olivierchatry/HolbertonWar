@@ -174,9 +174,7 @@ void write_output_file(char* input_file_name, generator_t* generator) {
 		for (i = 0; i < CORE_FILE_NAME_MAX_SIZE; ++i) {
 			generator_write8(generator, generator->core.name[i]);
 		}
-		printf("%x\n", generator->byte_code_offset);
 		generator_write32(generator, generator->core.code_size);
-		printf("%x\n", generator->core.code_size);
 		fwrite(generator->byte_code, 1, output_size, output);
 		fclose(output);
 	}
