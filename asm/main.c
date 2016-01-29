@@ -5,23 +5,23 @@
 #include "asm.h"
 
 char* generate_output_file_name(char* input_file_name) {
-  int   len   = strlen(input_file_name);
-  int   split = len - 1;
-  char* output_file_name = NULL;
+	int   len   = strlen(input_file_name);
+	int   split = len - 1;
+	char* output_file_name = NULL;
 
-  while (--split) {
-    if (input_file_name[split] == '.')
-      break;
-  }
+	while (--split) {
+		if (input_file_name[split] == '.')
+			break;
+	}
 
 	split = split < 0 ? len : split;
 
-  output_file_name = malloc(split + 7);
+	output_file_name = malloc(split + 7);
 	memset(output_file_name, 0, split + 7);
-  strncpy(output_file_name, input_file_name, split);
-  strcat(output_file_name, ".hcor");
+	strncpy(output_file_name, input_file_name, split);
+	strcat(output_file_name, ".hcor");
 
-  return output_file_name;
+	return output_file_name;
 }
 
 int label_get_offset(char* label_name, generator_t* generator, int32 type) {
@@ -60,7 +60,6 @@ static int32 parse_number(generator_t* generator, char* value, int32 type) {
 }
 
 void generate_instruction(opcode_t* opcode, char** output, int count, generator_t* generator) {
-
 	if ((count - 1) != opcode->args) {
 		generator->error = ASM_INVALID_ARGUMENT_COUNT;
 	}
@@ -209,7 +208,7 @@ int assemble(char* input_file_name) {
 	generator_t		generator = { 0 };
 
 	input = fopen(input_file_name, "rt");
-  if (input) {
+	if (input) {
 		generator_allocate(&generator);
 		generator.byte_code_base = sizeof(core_file_header_t);
 		while (!feof(input) && generator.error == ASM_OK) {
@@ -237,7 +236,7 @@ int assemble(char* input_file_name) {
 		generator_destroy(&generator);
 
 		return generator.error;
-  } else {
+	} else {
 		fprintf(stderr, "ERROR: cannot open input file %s.\n", input_file_name);
 		return ASM_INVALID_FILE_NAME;
 	}
@@ -245,11 +244,11 @@ int assemble(char* input_file_name) {
 
 
 int main(int ac, char** av) {
-  int i;
+	int i;
 
-  for (i = 1; i < ac; i++) {
+	for (i = 1; i < ac; i++) {
 		printf("assembling %s\n", av[i]);
-    assemble(av[i]);
-  }
+		assemble(av[i]);
+	}
 	return ASM_OK;
 }
