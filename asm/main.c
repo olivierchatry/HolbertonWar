@@ -120,7 +120,6 @@ void generate_instruction(opcode_t* opcode, char** output, int count, generator_
 			}
 			arg_number++;
 		}
-		printf("%s %.2X\n", opcode->mnemonic, *opcode_type);
 		generator->core.code_size = generator->byte_code_offset;
 	}
 }
