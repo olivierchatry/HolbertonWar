@@ -59,7 +59,7 @@ static int32 parse_number(generator_t* generator, char* value, int32 type) {
 	return ret;
 }
 
-void generate_opcode(opcode_t* opcode, char** output, int count, generator_t* generator) {
+void generate_instruction(opcode_t* opcode, char** output, int count, generator_t* generator) {
 
 	if ((count - 1) != opcode->args) {
 		generator->error = ASM_INVALID_ARGUMENT_COUNT;
@@ -80,37 +80,41 @@ void generate_opcode(opcode_t* opcode, char** output, int count, generator_t* ge
 			if (*arg == 'r') {
 				value = atoi(arg + 1);
 				if (value > CORE_REGISTER_COUNT || value < 1) {
-					fprintf(stderr, "invalid register r%d line %d\n", value, generator->current_line);
+					fprintf(stderr, "ERROR: invalid register r%d line %d\n", value, generator->current_line);
 					generator->error = ASM_INVALID_ARGUMENT;
 				}
-				parsed_type = CORE_ARG_TYPE_REG;
+				parsed_type = OP_ARG_TYPE_REG;
 			}
 			else if (strchr(arg, CORE_ASM_ADD) != NULL) {
-				parsed_type = CORE_ARG_TYPE_ADD;
+				parsed_type = OP_ARG_TYPE_ADD;
 				value = parse_number(generator, arg + 1, parsed_type);
 			}
 			else {
-				parsed_type = CORE_ARG_TYPE_IMM;
+				parsed_type = OP_ARG_TYPE_IMM;
 				value = parse_number(generator, arg, parsed_type);
 			}
 
 			if (generator->error == ASM_OK) {
 				if ((parsed_type & *arg_type) == 0) {
-					fprintf(stderr, "invalid argument %d, wrong type line %d\n", arg_number + 1, generator->current_line);
+					fprintf(stderr, "ERROR: invalid argument %d, wrong type line %d\n", arg_number + 1, generator->current_line);
 					generator->error = ASM_INVALID_ARGUMENT;
 				}
 				else {
-					*opcode_type |= parsed_type << (arg_number * 3);
-					if (parsed_type == CORE_ARG_TYPE_REG) {
+					int8 type;
+					if (parsed_type == OP_ARG_TYPE_REG) {
+						type = CORE_ARG_TYPE_REG;
 						generator_write8(generator, (int8)value);
-					} else if (parsed_type == CORE_ARG_TYPE_ADD) {
+					} else if (parsed_type == OP_ARG_TYPE_ADD) {
+						type = CORE_ARG_TYPE_ADD;
 						generator_write16(generator, (int16)value);
 					} else {
+						type = CORE_ARG_TYPE_ADD;
 						generator_write32(generator, value);
 					}
+					*opcode_type |= type << arg_number * 2;
 				}
 			} else if ( generator->error == ASM_INVALID_NUMBER ) {
-				fprintf(stderr, "invalid number format (%s) for argument %d line %d\n",
+				fprintf(stderr, "ERROR: invalid number format (%s) for argument %d line %d\n",
 					arg,
 					arg_number + 1,
 					generator->current_line);
@@ -140,7 +144,7 @@ void generate(char** output, int count, generator_t* generator) {
 			opcode++;
 		}
 		if (opcode->mnemonic) {
-			generate_opcode(opcode, output + 1, count, generator);
+			generate_instruction(opcode, output + 1, count, generator);
 		}
 		else {
 			generator->error = ASM_INVALID_INSTRUCTION;
@@ -148,7 +152,6 @@ void generate(char** output, int count, generator_t* generator) {
 		}
 	}
 }
-
 
 void write_output_file(char* input_file_name, generator_t* generator) {
 	char* output_file_name = generate_output_file_name(input_file_name);
@@ -168,9 +171,12 @@ void write_output_file(char* input_file_name, generator_t* generator) {
 		generator_write32(generator, CORE_FILE_MAGIC);
 		generator_write32(generator, CORE_FILE_VERSION);
 		generator_write32(generator, generator->core.flags);
-		for (i = 0; i < CORE_FILE_NAME_MAX_SIZE; ++i)
+		for (i = 0; i < CORE_FILE_NAME_MAX_SIZE; ++i) {
 			generator_write8(generator, generator->core.name[i]);
+		}
+		printf("%x\n", generator->byte_code_offset);
 		generator_write32(generator, generator->core.code_size);
+		printf("%x\n", generator->core.code_size);
 		fwrite(generator->byte_code, 1, output_size, output);
 		fclose(output);
 	}
@@ -185,7 +191,7 @@ void handle_forward_labels(generator_t* generator) {
 		label_t* label = label_find_in_list(forward->name, generator->labels);
 
 		if (!label) {
-			fprintf(stderr, "label %s not found line %d\n", forward->name, forward->line);
+			fprintf(stderr, "ERROR: label %s not found line %d\n", forward->name, forward->line);
 			generator->error = ASM_LABEL_NOT_FOUND;
 		} else {
 			int32 value = label->opcode_offset - forward->opcode_offset;

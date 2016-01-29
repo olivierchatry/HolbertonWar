@@ -25,11 +25,16 @@ typedef struct core_file_header_s {
 
 #define CORE_ARG_TYPE_REG 1
 #define CORE_ARG_TYPE_IMM 2
-#define CORE_ARG_TYPE_ADD 4
+#define CORE_ARG_TYPE_ADD 3
 
 #define CORE_ASM_ADD	'%'
 #define CORE_ASM_SEP	','
 #define CORE_ASM_COMMENT ';'
+
+
+#define OP_ARG_TYPE_REG 1
+#define OP_ARG_TYPE_IMM 2
+#define OP_ARG_TYPE_ADD 4
 
 typedef struct opcode_s {
   int8   opcode;
