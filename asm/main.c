@@ -65,15 +65,14 @@ void generate_instruction(opcode_t* opcode, char** output, int count, generator_
 		generator->error = ASM_INVALID_ARGUMENT_COUNT;
 	}
 	else {
-		int* arg_type = opcode->arg_type;
 		char* opcode_type;
-
+		int32 arg_number = 0;
 		generator_write8(generator, opcode->opcode);
 		opcode_type = generator_write8(generator, 0);
 
-		while (*arg_type && (generator->error == ASM_OK)) {
+		while (opcode->arg_type[arg_number] && (generator->error == ASM_OK)) {
 			char* arg = *output++;
-			int32 arg_number = (int32) (arg_type - opcode->arg_type);
+
 			int32 parsed_type = 0;
 			int32 value;
 
@@ -95,7 +94,7 @@ void generate_instruction(opcode_t* opcode, char** output, int count, generator_
 			}
 
 			if (generator->error == ASM_OK) {
-				if ((parsed_type & *arg_type) == 0) {
+				if ((parsed_type & opcode->arg_type[arg_number]) == 0) {
 					fprintf(stderr, "ERROR: invalid argument %d, wrong type line %d\n", arg_number + 1, generator->current_line);
 					generator->error = ASM_INVALID_ARGUMENT;
 				}
@@ -111,7 +110,7 @@ void generate_instruction(opcode_t* opcode, char** output, int count, generator_
 						type = CORE_ARG_TYPE_IMM;
 						generator_write32(generator, value);
 					}
-					*opcode_type |= type << arg_number * 2;
+					*opcode_type |= (type << (arg_number * 2));
 				}
 			} else if ( generator->error == ASM_INVALID_NUMBER ) {
 				fprintf(stderr, "ERROR: invalid number format (%s) for argument %d line %d\n",
@@ -119,8 +118,9 @@ void generate_instruction(opcode_t* opcode, char** output, int count, generator_
 					arg_number + 1,
 					generator->current_line);
 			}
-			arg_type++;
+			arg_number++;
 		}
+		printf("%s %.2X\n", opcode->mnemonic, *opcode_type);
 		generator->core.code_size = generator->byte_code_offset;
 	}
 }
@@ -194,7 +194,7 @@ void handle_forward_labels(generator_t* generator) {
 		} else {
 			int32 value = label->opcode_offset - forward->opcode_offset;
 			generator->byte_code_offset = forward->offset;
-			if (forward->type == CORE_ARG_TYPE_ADD)
+			if (forward->type == OP_ARG_TYPE_ADD)
 				generator_write16(generator, (int16) value);
 			else
 				generator_write32(generator, value);
