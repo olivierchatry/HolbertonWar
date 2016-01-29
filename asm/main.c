@@ -108,7 +108,7 @@ void generate_instruction(opcode_t* opcode, char** output, int count, generator_
 						type = CORE_ARG_TYPE_ADD;
 						generator_write16(generator, (int16)value);
 					} else {
-						type = CORE_ARG_TYPE_ADD;
+						type = CORE_ARG_TYPE_IMM;
 						generator_write32(generator, value);
 					}
 					*opcode_type |= type << arg_number * 2;
