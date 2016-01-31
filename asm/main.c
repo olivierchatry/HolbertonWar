@@ -49,9 +49,9 @@ static int32 parse_number(generator_t* generator, char* value, int32 type) {
 	}
 
 	if (*value == 'b') {
-		ret = strtol(value + 1, &end, 2);
+		ret = strtoll(value + 1, &end, 2);
 	} else {
-		ret = strtol(value, &end, 0);
+		ret = strtoll(value, &end, 0);
 	}
 	if (*end != 0) {
 		generator->error = ASM_INVALID_NUMBER;
@@ -60,8 +60,12 @@ static int32 parse_number(generator_t* generator, char* value, int32 type) {
 }
 
 void generate_instruction(opcode_t* opcode, char** output, int count, generator_t* generator) {
-	if ((count - 1) != opcode->args) {
+	if ((count - 1) != opcode->arg_count) {
 		generator->error = ASM_INVALID_ARGUMENT_COUNT;
+		fprintf(stderr, "ERROR: invalid number of arguments (%d, expected %d) line %d\n",
+			count - 1,
+			opcode->arg_count,
+			generator->current_line);
 	}
 	else {
 		char* opcode_type;
@@ -69,7 +73,7 @@ void generate_instruction(opcode_t* opcode, char** output, int count, generator_
 		generator_write8(generator, opcode->opcode);
 		opcode_type = generator_write8(generator, 0);
 
-		while (opcode->arg_type[arg_number] && (generator->error == ASM_OK)) {
+		while ( (arg_number < opcode->arg_count) && (generator->error == ASM_OK)) {
 			char* arg = *output++;
 
 			int32 parsed_type = 0;
@@ -93,7 +97,7 @@ void generate_instruction(opcode_t* opcode, char** output, int count, generator_
 			}
 
 			if (generator->error == ASM_OK) {
-				if ((parsed_type & opcode->arg_type[arg_number]) == 0) {
+				if ((parsed_type & opcode->arg_types[arg_number]) == 0) {
 					fprintf(stderr, "ERROR: invalid argument %d, wrong type line %d\n", arg_number + 1, generator->current_line);
 					generator->error = ASM_INVALID_ARGUMENT;
 				}
@@ -211,7 +215,7 @@ int assemble(char* input_file_name) {
 		generator.byte_code_base = sizeof(core_file_header_t);
 		while (!feof(input) && generator.error == ASM_OK) {
 			char* output[10];
-
+			memset(line, 0, 1024);
 			fgets(line, 1024, input);
 			generator.current_line++;
 			int count = parse(line, output, 10);

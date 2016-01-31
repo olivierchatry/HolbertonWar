@@ -37,8 +37,8 @@ typedef struct opcode_s {
   int8   opcode;
 	char*  mnemonic;
 	int32	 cycles;
-	int32	 args;
-	int32	 arg_type[3];
+	int32	 arg_count;
+	int32	 arg_types[3];
 } opcode_t;
 
 opcode_t* holberton_core_get_opcodes();
@@ -46,7 +46,7 @@ opcode_t* holberton_core_get_opcodes();
 #define VM_MAX_PROCESSES	65535
 #define VM_MAX_CORES			4
 
-#define VM_MEMORY_SIZE		8192
+#define VM_MEMORY_SIZE		(80 * 25)
 #define VM_CYCLE_DELTA		4
 #define VM_CYCLE_TO_DIE		1536
 #define VM_LIVE_COUNT			2048

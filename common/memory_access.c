@@ -12,60 +12,71 @@ memory_write8_t  memory_write8;
 
 #include "../common/utils.h"
 
-
-static int		invert_read32(char* mem, int offset, int modulo) {
-	return ((int)(mem[(offset + 0) % modulo] & 0xff) << 24)
-	 	   | ((int)(mem[(offset + 1) % modulo] & 0xff) << 16)
-			 | ((int)(mem[(offset + 2) % modulo] & 0xff) << 8)
-			 | ((int)(mem[(offset + 3) % modulo] & 0xff) << 0) ;
+int memory_bound(int offset, bound_t* bound) {
+	if (bound) {
+		int end = bound->start + bound->size;
+		while (offset < bound->start) offset = (end - offset);
+		while (offset > end) offset -= bound->size;
+	}
+	return offset;
 }
 
-static short	invert_read16(char* mem, int offset, int modulo) {
-	return ((short)(mem[(offset + 0) % modulo] & 0xff) << 8)
-	 	   | ((short)(mem[(offset + 1) % modulo] & 0xff) << 0);
+static char 	read8(char* mem, int offset, bound_t* bound) {
+	return mem[memory_bound(offset, bound)];
 }
 
-static void  invert_write32(int val, char* mem, int offset, int modulo) {
-	mem[(offset + 0) % modulo] = (val >> 24) & 0xff;
-	mem[(offset + 1) % modulo] = (val >> 16) & 0xff;
-	mem[(offset + 2) % modulo] = (val >> 8)  & 0xff;
-	mem[(offset + 3) % modulo] = (val >> 0)  & 0xff;
-}
-static void  invert_write16(short val, char* mem, int offset, int modulo) {
-	mem[(offset + 0) % modulo] = (val >> 8)  & 0xff;
-	mem[(offset + 1) % modulo] = (val >> 0)  & 0xff;
+static void  write8(char val, char* mem, int offset, bound_t* bound) {
+	mem[memory_bound(offset, bound)] = val;
 }
 
-static int		read32(char* mem, int offset, int modulo) {
-	return ((int)(mem[(offset + 3) % modulo] & 0xff) << 24)
-	 	   | ((int)(mem[(offset + 2) % modulo] & 0xff) << 16)
-			 | ((int)(mem[(offset + 1) % modulo] & 0xff) << 8)
-			 | ((int)(mem[(offset + 0) % modulo] & 0xff) << 0) ;
+
+static int		invert_read32(char* mem, int offset, bound_t* bound) {
+	return (((int)(read8(mem, offset + 0, bound)) & 0xff) << 24)
+		| (((int)(read8(mem, offset + 1, bound)) & 0xff) << 16)
+		| (((int)(read8(mem, offset + 2, bound)) & 0xff) << 8)
+		| (((int)(read8(mem, offset + 3, bound)) & 0xff) << 0);
 }
 
-static short	read16(char* mem, int offset, int modulo) {
-	return ((short)(mem[(offset + 1) % modulo] & 0xff) << 8)
-	 	   | ((short)(mem[(offset + 0) % modulo] & 0xff) << 0);
+static short	invert_read16(char* mem, int offset, bound_t* bound) {
+	return (((short)(read8(mem, offset + 0, bound)) & 0xff) << 8)
+		| (((short)(read8(mem, offset + 1, bound)) & 0xff) << 0);
 }
 
-static char 	read8(char* mem, int offset, int modulo) {
-	return mem[(offset + 0) % modulo];
+static void  invert_write32(int val, char* mem, int offset, bound_t* bound) {
+	write8((val >> 24) & 0xff, mem, offset + 0, bound);
+	write8((val >> 16) & 0xff, mem, offset + 1, bound);
+	write8((val >> 8) & 0xff, mem, offset + 2, bound);
+	write8((val >> 0) & 0xff, mem, offset + 3, bound);
+}
+static void  invert_write16(short val, char* mem, int offset, bound_t* bound) {
+	write8((val >> 8) & 0xff, mem, offset + 0, bound);
+	write8((val >> 0) & 0xff, mem, offset + 1, bound);
 }
 
-static void  write32(int val, char* mem, int offset, int modulo) {
-	mem[(offset + 3) % modulo] = (val >> 24) & 0xff;
-	mem[(offset + 2) % modulo] = (val >> 16) & 0xff;
-	mem[(offset + 1) % modulo] = (val >> 8)  & 0xff;
-	mem[(offset + 0) % modulo] = (val >> 0)  & 0xff;
-}
-static void  write16(short val, char* mem, int offset, int modulo) {
-	mem[(offset + 1) % modulo] = (val >> 8)  & 0xff;
-	mem[(offset + 0) % modulo] = (val >> 0)  & 0xff;
+static int		read32(char* mem, int offset, bound_t* bound) {
+	return (((int)(read8(mem, offset + 3, bound)) & 0xff) << 24)
+		| (((int)(read8(mem, offset + 2, bound)) & 0xff) << 16)
+		| (((int)(read8(mem, offset + 1, bound)) & 0xff) << 8)
+		| (((int)(read8(mem, offset + 0, bound)) & 0xff) << 0);
 }
 
-static void  write8(char val, char* mem, int offset, int modulo) {
-	mem[(offset + 0) % modulo] = val;
+static short	read16(char* mem, int offset, bound_t* bound) {
+	return (((short)(read8(mem, offset + 1, bound)) & 0xff) << 8)
+		| (((short)(read8(mem, offset + 0, bound)) & 0xff) << 0);
 }
+
+
+static void  write32(int val, char* mem, int offset, bound_t* bound) {
+	write8((val >> 24) & 0xff, mem, offset + 3, bound);
+	write8((val >> 16) & 0xff, mem, offset + 2, bound);
+	write8((val >> 8)  & 0xff, mem, offset + 1, bound);
+	write8((val >> 0)  & 0xff, mem, offset + 0, bound);
+}
+static void  write16(short val, char* mem, int offset, bound_t* bound) {
+	write8((val >> 8) & 0xff, mem, offset + 1, bound);
+	write8((val >> 0) & 0xff, mem, offset + 0, bound);
+}
+
 
 void memory_access_initialize(int invert) {
 	memory_read8  = read8;

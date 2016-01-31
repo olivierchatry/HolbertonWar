@@ -3,7 +3,7 @@
 
 
 #include "../common/holberton-core.h"
-
+#include "../common/memory_access.h"
 
 typedef struct core_s {
 	core_file_header_t*	header;
@@ -11,6 +11,7 @@ typedef struct core_s {
 	int32								live_count;
 	int32								live_last_cycle;
 	float*  						color;
+	bound_t							bound;
 } core_t;
 
 int8*			core_get_code_ptr(core_t* core);

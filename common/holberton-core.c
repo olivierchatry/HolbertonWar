@@ -70,6 +70,10 @@ static opcode_t g_opcodes[] = {
       OP_ARG_TYPE_IMM | OP_ARG_TYPE_REG,
     }
   },
+	{ 0x0f, "cycles",  1, 3,{
+			OP_ARG_TYPE_REG
+		}
+	},
 	{0, 0}
 };
 
