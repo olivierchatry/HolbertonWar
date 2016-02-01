@@ -14,7 +14,6 @@ sti r3, :write_here, 4
 sti r4, :write_here, 8
 
 fork :write_here
-fork :start
 :live
 live 0xff00ff00
 jmp :start

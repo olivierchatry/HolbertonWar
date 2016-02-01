@@ -61,8 +61,11 @@ int load_cores(vm_t* vm, int ac, char** av) {
 	return current_core;
 }
 
+#define RENDER_NCURSES
+
 #ifdef _WIN32
 #include <Windows.h>
+
 
 void clear_console() {
 	COORD topLeft = { 0, 0 };
@@ -80,11 +83,24 @@ void clear_console() {
 		);
 	SetConsoleCursorPosition(console, topLeft);
 }
+#else
+
+void clear_console() {
+	printf("\033[2J\033[1;1H");
+}
+#endif
+
+#ifdef RENDER_NCURSES
+	#include <ncurses.h>
 #endif
 
 int main(int ac, char** av) {
 	vm_t*	vm		= vm_initialize();
 
+#ifdef RENDER_NCURSES
+	initscr();
+	raw();
+#endif
 	memory_access_initialize(0);
 
 	if (load_cores(vm, ac, av) <= 0) {
@@ -106,15 +122,26 @@ int main(int ac, char** av) {
 				vm_execute(vm, process);
 			}
 		}
-		printf("cycle %d %d\n", vm->cycle_total, vm->cycle_total);
-/*		clear_console();
-		for (int y = 0; y < 80; ++y) {
-			for (int x = 0; x < 25; ++x) {
-				printf("%.2X ", (unsigned char)vm->memory[25 * y + x]);
-			}
-			printf("\n");
-		}*/
 
+		// printf("cycle %d, process count %d, live count %d, cycle to die %d\n", vm->cycle_total, vm->process_count, vm->live_count, vm->cycle_to_die);
+		/*clear_console();*/
+	#ifdef RENDER_NCURSES
+		{
+			// clear();
+			int row, col, mem;
+			getmaxyx(stdscr,row,col);
+	 		mem = 0;
+			for (int y = 0; y < row; ++y) {
+				for (int x = 0; x < col; x+=3) {
+					if (mem < vm->memory_size) {
+						mvprintw(y, x, "%.2X ", (unsigned char)vm->memory[mem ++]);
+					}
+				}
+
+			}
+			refresh();
+		}
+	#endif
 		if (vm->cycle_current > vm->cycle_to_die) {
 			vm->cycle_current = 0;
 			vm_kill_process_if_no_live(vm);
@@ -122,6 +149,8 @@ int main(int ac, char** av) {
 
 		vm_clean_dead_process(vm);
 	}
-
+#ifdef RENDER_NCURSES
+	endwin();
+#endif
 	vm_destroy(vm);
 }

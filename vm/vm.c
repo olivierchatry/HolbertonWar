@@ -238,16 +238,12 @@ int 				vm_execute(vm_t* vm, process_t* process) {
 	int32   		offset = 2;
 	int32				args[4], regs[4];
 	int32				addr;
-	/*
-	for (int i =0; i < 16; ++i) {
-		printf("r%d=%.8X ", i + 1, process->reg[i]);
-	}
-	printf("\n");
-	for (int i =0; i < 80; ++i) {
+
+	/*for (int i =0; i < 80; ++i) {
 		printf("%.2X ", (unsigned char) vm->memory[i]);
 	}
-	printf("\n\n");
-	*/
+	printf("\n\n");*/
+
 
 	process->pc = memory_bound(process->pc, &process->core->bound);
 	pc = process->pc;
@@ -299,6 +295,7 @@ int 				vm_execute(vm_t* vm, process_t* process) {
 		case 0x0b:
 			break;
 		case 0x0c:
+			process->cycle_live = vm->cycle_total;
 			vm_live(vm, args[0]);
 			break;
 		case 0x0d:
@@ -308,6 +305,8 @@ int 				vm_execute(vm_t* vm, process_t* process) {
 			break;
 		case 0x0e:
 			addr = pc + (args[1] + args[2]) % VM_MEMORY_MODULO;
+			// printf(" ==> %d -> %d\n", addr, memory_bound(addr, &process->core->bound));
+
 			memory_write32(args[0], vm->memory, addr, &process->core->bound);
 			process->zero = args[0] == 0;
 			break;

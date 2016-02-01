@@ -8,6 +8,10 @@ workspace "HolbertonWar"
     debugdir "../cores"
     kind "ConsoleApp"
     language "C"
+
+		filter { "system:linux" }
+			links { "X11", "Xxf86vm", "Xrandr", "Xi", "GL", "pthread", "m", "ncurses"}
+
     files { "../vm/**.h", "../vm/**.c" }
     files { "../common/**.h", "../common/**.c" }
     filter "configurations:Debug"
