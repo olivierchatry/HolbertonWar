@@ -97,15 +97,16 @@ void clear_console() {
 int main(int ac, char** av) {
 	vm_t*	vm		= vm_initialize();
 
-#ifdef RENDER_NCURSES
-	initscr();
-	raw();
-#endif
 	memory_access_initialize(0);
 
 	if (load_cores(vm, ac, av) <= 0) {
 		return -1;
 	}
+
+	#ifdef RENDER_NCURSES
+		initscr();
+		raw();
+	#endif
 
 	while (vm->process_count) {
 		int32 i;

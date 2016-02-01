@@ -315,14 +315,13 @@ int 				vm_execute(vm_t* vm, process_t* process) {
 			process->zero = vm->cycles_barrier == 0;
 			break;
 		default:
-			// ret = VM_ERROR_OPCODE;
+			ret = VM_ERROR_OPCODE;
 			break;
 		}
 		// process->pc = process->pc + 1;
 	}
 
-	if (ret != VM_OK) {
-		exit(0);
+	if (ret != VM_OK) {		
 		process->pc = process->pc + 1;
 	}
 
