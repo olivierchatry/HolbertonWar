@@ -12,7 +12,7 @@
 
 #define VM_OK			1
 #define VM_MAX_JUMP	512
-
+#define VM_PROCESS_MAX_IO 16
 typedef struct process_s
 {
 
@@ -29,10 +29,10 @@ typedef struct process_s
 
 	core_t*		core;
 
-	int16			memory_read_op_addr;
-	int16 		memory_read_op;
-	int16			memory_write_op_addr;
-	int16 		memory_write_op;
+	int16			memory_read_op[VM_PROCESS_MAX_IO];
+	int16 		memory_read_op_count;
+	int16			memory_write_op[VM_PROCESS_MAX_IO];
+	int16 		memory_write_op_count;
 
 	int32			jump;
 	int16			jump_from;
@@ -40,6 +40,7 @@ typedef struct process_s
 
 	int32			cycle_create;
 
+	memory_callback_t memory_callback;
 
 } process_t;
 

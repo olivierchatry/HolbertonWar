@@ -5,21 +5,20 @@ xor r2, r2, r2		; set the default offset for the barrier
 
 :start
 sub r3, 1, r3			; make the barrier change a bit, more fun to watch, each new process will get a new value.
-ld 8, r4 					; number of fork per process, make sure it is reset after each fork.
+ld  4 , r4 					; number of fork per process, make sure it is reset after each fork.
 st  r1, 9 				; write id to next live
+
+add r2, 4, r2			; make the barrier move, each  new process will get a new value.
+sub r2, 64, r9		;
+jnz :alive
+xor r2, r2, r2
 
 :alive
 live 0xffffffff		; live, real value will be written at runtime.
 
-add r2, 4, r2			; make the barrier move, each  new process will get a new value.
-sub r2, 64, r9		;
-jnz :continue
-xor r2, r2, r2
-
-:continue
-
 sti r3, r2, 128		; write barrier, r2 ( per process offset ) + 64
 sti r3, r2, -400		; write barrier, r2 ( per process offset ) + 64
+
 sub r4, 1, r4			; remove one to the per-process fork counter.
 jnz :fork					; if not zero, let'fork.
 

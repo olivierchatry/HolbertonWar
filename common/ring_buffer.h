@@ -3,7 +3,7 @@
 
 typedef void(*t_ring_fct_free)(void*);
 
-struct s_ring_buffer
+struct ring_buffer_s
 {
 	int								size;
 	int								read_index;
@@ -12,7 +12,7 @@ struct s_ring_buffer
 	t_ring_fct_free		free_element_fct;
 };
 
-typedef struct s_ring_buffer ring_buffer_t;
+typedef struct ring_buffer_s ring_buffer_t;
 
 ring_buffer_t*	ring_buffer_initialize(int size, t_ring_fct_free free_element_fct);
 void						ring_buffer_destroy(ring_buffer_t* ring);

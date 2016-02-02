@@ -5,6 +5,15 @@
 #include "core.h"
 #include "../common/memory_access.h"
 
+
+static void memory_callback(int add, int write, void* data) {
+	process_t* process = (process_t*) data;
+	if (write)
+		process->memory_write_op[process->memory_write_op_count++] = add;
+	else
+		process->memory_read_op[process->memory_read_op_count++] = add;
+}
+
 vm_t* vm_initialize() {
 	vm_t* vm = (vm_t*) malloc(sizeof(vm_t));
 
@@ -84,12 +93,15 @@ process_t*	vm_create_process(vm_t* vm, process_t* parent, int32 pc) {
 		memset(process, 0, sizeof(process_t));
 	}
 
+	process->memory_callback.user_data = process;
+	process->memory_callback.fct = memory_callback;
+
 
 	process->pc = pc;
 	process->internal_id = vm->process_counter++;
 	process->cycle_live = vm->cycle_total;
-	process->memory_write_op = 0;
-	process->memory_read_op = 0;
+	process->memory_write_op_count = 0;
+	process->memory_read_op_count = 0;
 	process->jump = 0;
 	// new process always wait 1 more cycles.
 	process->cycle_wait ++;
@@ -122,8 +134,8 @@ process_t*	vm_add_core(vm_t* vm, core_t* core, int32 offset) {
 }
 
 void	vm_reset_process_io_op(process_t* process) {
-	process->memory_read_op = 0;
-	process->memory_write_op = 0;
+	process->memory_read_op_count = 0;
+	process->memory_write_op_count = 0;
 	process->jump = 0;
 }
 
@@ -154,7 +166,7 @@ void	vm_kill_process_if_no_live(vm_t* vm) {
 
 opcode_t* vm_get_opcode(vm_t* vm, process_t* process) {
 	opcode_t* temp = holberton_core_get_opcodes();
-	int8 opcode = vm->memory[process->pc % vm->memory_size];
+	int8 opcode = memory_read8(vm->memory, process->pc, &process->core->bound, &process->memory_callback);
 
 	while ((temp->opcode != 0) && (temp->opcode != opcode))
 		temp++;
@@ -173,7 +185,7 @@ int 				vm_check_opcode(vm_t* vm, process_t* process, int* args, int* regs, int 
 		int32 pc = process->pc + 1;
 		int8 encoding;
 
-		encoding = vm->memory[pc++];
+		encoding = memory_read8(vm->memory, pc++, &process->core->bound, &process->memory_callback); 
 
 		for (; i < process->current_opcode->arg_count; ++i) {
 			int encode = TYPE(encoding, i);
@@ -182,15 +194,15 @@ int 				vm_check_opcode(vm_t* vm, process_t* process, int* args, int* regs, int 
 			if ( (type & process->current_opcode->arg_types[i]) == 0 )
 				return VM_ERROR_ENCODING;
 			if ( type == OP_ARG_TYPE_IMM ) {
-				args[i] = memory_read32(vm->memory, pc, &process->core->bound);
+				args[i] = memory_read32(vm->memory, pc, &process->core->bound, &process->memory_callback);
 				regs[i] = -1;
 				pc += 4;
 			}
 			else if ( type == OP_ARG_TYPE_ADD ) {
-				regs[i] = memory_read16(vm->memory, pc, &process->core->bound);
+				regs[i] = memory_read16(vm->memory, pc, &process->core->bound, &process->memory_callback);
 				args[i] = process->pc + regs[i] % modulo;
 				if (args[i] < 0) args[i] += vm->memory_size;
-				args[i] = memory_read32(vm->memory, args[i], &process->core->bound);
+				args[i] = memory_read32(vm->memory, args[i], &process->core->bound, &process->memory_callback);
 				pc += 2;
 			}
 			else {
@@ -235,7 +247,6 @@ void	vm_live(vm_t* vm, int32 id)
 
 int 				vm_execute(vm_t* vm, process_t* process) {
 	int32				pc;
-	int32   		offset = 2;
 	int32				args[4], regs[4];
 	int32				addr;
 
@@ -279,6 +290,9 @@ int 				vm_execute(vm_t* vm, process_t* process) {
 		case 0x07:
 			addr = pc + args[0] % VM_MEMORY_MODULO;
 			process->pc = memory_bound(addr, &process->core->bound);
+			process->jump = 1;
+			process->jump_from = pc;
+			process->jump_to = addr;
 			break;
 		case 0x08:
 			process->reg[regs[1]] = args[0];
@@ -286,7 +300,7 @@ int 				vm_execute(vm_t* vm, process_t* process) {
 			break;
 		case 0x09:
 			addr = pc + args[1] % VM_MEMORY_MODULO;
-			memory_write32(args[0], vm->memory, addr, &process->core->bound);
+			memory_write32(args[0], vm->memory, addr, &process->core->bound, &process->memory_callback);
 			process->zero = args[0] == 0;
 			break;
 		case 0x0a:
@@ -300,14 +314,12 @@ int 				vm_execute(vm_t* vm, process_t* process) {
 			break;
 		case 0x0d:
 			addr = pc + (args[0] + args[1]) % VM_MEMORY_MODULO;
-			process->reg[regs[2]] = memory_read32(vm->memory, addr, &process->core->bound);
+			process->reg[regs[2]] = memory_read32(vm->memory, addr, &process->core->bound, &process->memory_callback);
 			process->zero = process->reg[regs[2]] == 0;
 			break;
 		case 0x0e:
 			addr = pc + (args[1] + args[2]) % VM_MEMORY_MODULO;
-			// printf(" ==> %d -> %d\n", addr, memory_bound(addr, &process->core->bound));
-
-			memory_write32(args[0], vm->memory, addr, &process->core->bound);
+			memory_write32(args[0], vm->memory, addr, &process->core->bound, &process->memory_callback);
 			process->zero = args[0] == 0;
 			break;
 		case 0x0f:
@@ -321,7 +333,7 @@ int 				vm_execute(vm_t* vm, process_t* process) {
 		// process->pc = process->pc + 1;
 	}
 
-	if (ret != VM_OK) {		
+	if (ret != VM_OK) {
 		process->pc = process->pc + 1;
 	}
 

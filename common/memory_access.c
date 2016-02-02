@@ -21,60 +21,68 @@ int memory_bound(int offset, bound_t* bound) {
 	return offset;
 }
 
-static char 	read8(char* mem, int offset, bound_t* bound) {
-	return mem[memory_bound(offset, bound)];
+static char 	read8(char* mem, int offset, bound_t* bound, memory_callback_t* callback) {
+	int add = memory_bound(offset, bound);
+	if (callback) {
+		callback->fct(add, 0, callback->user_data);
+	}
+	return mem[add];
 }
 
-static void  write8(char val, char* mem, int offset, bound_t* bound) {
-	mem[memory_bound(offset, bound)] = val;
-}
-
-
-static int		invert_read32(char* mem, int offset, bound_t* bound) {
-	return (((int)(read8(mem, offset + 0, bound)) & 0xff) << 24)
-		| (((int)(read8(mem, offset + 1, bound)) & 0xff) << 16)
-		| (((int)(read8(mem, offset + 2, bound)) & 0xff) << 8)
-		| (((int)(read8(mem, offset + 3, bound)) & 0xff) << 0);
-}
-
-static short	invert_read16(char* mem, int offset, bound_t* bound) {
-	return (((short)(read8(mem, offset + 0, bound)) & 0xff) << 8)
-		| (((short)(read8(mem, offset + 1, bound)) & 0xff) << 0);
-}
-
-static void  invert_write32(int val, char* mem, int offset, bound_t* bound) {
-	write8((val >> 24) & 0xff, mem, offset + 0, bound);
-	write8((val >> 16) & 0xff, mem, offset + 1, bound);
-	write8((val >> 8) & 0xff, mem, offset + 2, bound);
-	write8((val >> 0) & 0xff, mem, offset + 3, bound);
-}
-static void  invert_write16(short val, char* mem, int offset, bound_t* bound) {
-	write8((val >> 8) & 0xff, mem, offset + 0, bound);
-	write8((val >> 0) & 0xff, mem, offset + 1, bound);
-}
-
-static int		read32(char* mem, int offset, bound_t* bound) {
-	return (((int)(read8(mem, offset + 3, bound)) & 0xff) << 24)
-		| (((int)(read8(mem, offset + 2, bound)) & 0xff) << 16)
-		| (((int)(read8(mem, offset + 1, bound)) & 0xff) << 8)
-		| (((int)(read8(mem, offset + 0, bound)) & 0xff) << 0);
-}
-
-static short	read16(char* mem, int offset, bound_t* bound) {
-	return (((short)(read8(mem, offset + 1, bound)) & 0xff) << 8)
-		| (((short)(read8(mem, offset + 0, bound)) & 0xff) << 0);
+static void  write8(char val, char* mem, int offset, bound_t* bound, memory_callback_t* callback) {
+	int add = memory_bound(offset, bound);
+	if (callback) {
+		callback->fct(add, 1, callback->user_data);
+	}
+	mem[add] = val;
 }
 
 
-static void  write32(int val, char* mem, int offset, bound_t* bound) {
-	write8((val >> 24) & 0xff, mem, offset + 3, bound);
-	write8((val >> 16) & 0xff, mem, offset + 2, bound);
-	write8((val >> 8)  & 0xff, mem, offset + 1, bound);
-	write8((val >> 0)  & 0xff, mem, offset + 0, bound);
+static int		invert_read32(char* mem, int offset, bound_t* bound, memory_callback_t* callback) {
+	return (((int)(read8(mem, offset + 0, bound, callback)) & 0xff) << 24)
+		| (((int)(read8(mem, offset + 1, bound, callback)) & 0xff) << 16)
+		| (((int)(read8(mem, offset + 2, bound, callback)) & 0xff) << 8)
+		| (((int)(read8(mem, offset + 3, bound, callback)) & 0xff) << 0);
 }
-static void  write16(short val, char* mem, int offset, bound_t* bound) {
-	write8((val >> 8) & 0xff, mem, offset + 1, bound);
-	write8((val >> 0) & 0xff, mem, offset + 0, bound);
+
+static short	invert_read16(char* mem, int offset, bound_t* bound, memory_callback_t* callback) {
+	return (((short)(read8(mem, offset + 0, bound, callback)) & 0xff) << 8)
+		| (((short)(read8(mem, offset + 1, bound, callback)) & 0xff) << 0);
+}
+
+static void  invert_write32(int val, char* mem, int offset, bound_t* bound, memory_callback_t* callback) {
+	write8((val >> 24) & 0xff, mem, offset + 0, bound, callback);
+	write8((val >> 16) & 0xff, mem, offset + 1, bound, callback);
+	write8((val >> 8) & 0xff, mem, offset + 2, bound, callback);
+	write8((val >> 0) & 0xff, mem, offset + 3, bound, callback);
+}
+static void  invert_write16(short val, char* mem, int offset, bound_t* bound, memory_callback_t* callback) {
+	write8((val >> 8) & 0xff, mem, offset + 0, bound, callback);
+	write8((val >> 0) & 0xff, mem, offset + 1, bound, callback);
+}
+
+static int		read32(char* mem, int offset, bound_t* bound, memory_callback_t* callback) {
+	return (((int)(read8(mem, offset + 3, bound, callback)) & 0xff) << 24)
+		| (((int)(read8(mem, offset + 2, bound, callback)) & 0xff) << 16)
+		| (((int)(read8(mem, offset + 1, bound, callback)) & 0xff) << 8)
+		| (((int)(read8(mem, offset + 0, bound, callback)) & 0xff) << 0);
+}
+
+static short	read16(char* mem, int offset, bound_t* bound, memory_callback_t* callback) {
+	return (((short)(read8(mem, offset + 1, bound, callback)) & 0xff) << 8)
+		| (((short)(read8(mem, offset + 0, bound, callback)) & 0xff) << 0);
+}
+
+
+static void  write32(int val, char* mem, int offset, bound_t* bound, memory_callback_t* callback) {
+	write8((val >> 24) & 0xff, mem, offset + 3, bound, callback);
+	write8((val >> 16) & 0xff, mem, offset + 2, bound, callback);
+	write8((val >> 8)  & 0xff, mem, offset + 1, bound, callback);
+	write8((val >> 0)  & 0xff, mem, offset + 0, bound, callback);
+}
+static void  write16(short val, char* mem, int offset, bound_t* bound, memory_callback_t* callback) {
+	write8((val >> 8) & 0xff, mem, offset + 1, bound, callback);
+	write8((val >> 0) & 0xff, mem, offset + 0, bound, callback);
 }
 
 

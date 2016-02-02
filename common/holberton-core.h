@@ -5,6 +5,10 @@ typedef int   int32;
 typedef short int16;
 typedef char  int8;
 
+typedef unsigned int 		uint32;
+typedef unsigned short 	uint16;
+typedef unsigned char 	uint8;
+
 #define CORE_REGISTER_COUNT				16
 #define CORE_FILE_NAME_MAX_SIZE   64
 #define CORE_FILE_VERSION         1
@@ -46,7 +50,7 @@ opcode_t* holberton_core_get_opcodes();
 #define VM_MAX_PROCESSES	65535
 #define VM_MAX_CORES			4
 
-#define VM_MEMORY_SIZE		(80 * 25)
+#define VM_MEMORY_SIZE		8092
 #define VM_CYCLE_DELTA		4
 #define VM_CYCLE_TO_DIE		1536
 #define VM_LIVE_COUNT			2048

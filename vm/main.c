@@ -3,6 +3,7 @@
 #include <string.h>
 #include "core.h"
 #include "vm.h"
+#include "display/display.h"
 
 #include "../common/utils.h"
 #include "../common/memory_access.h"
@@ -61,34 +62,8 @@ int load_cores(vm_t* vm, int ac, char** av) {
 	return current_core;
 }
 
-#define RENDER_NCURSES
-
-#ifdef _WIN32
-#include <Windows.h>
-
-
-void clear_console() {
-	COORD topLeft = { 0, 0 };
-	HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
-	CONSOLE_SCREEN_BUFFER_INFO screen;
-	DWORD written;
-
-	GetConsoleScreenBufferInfo(console, &screen);
-	FillConsoleOutputCharacterA(
-		console, ' ', screen.dwSize.X * screen.dwSize.Y, topLeft, &written
-		);
-	FillConsoleOutputAttribute(
-		console, FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_BLUE,
-		screen.dwSize.X * screen.dwSize.Y, topLeft, &written
-		);
-	SetConsoleCursorPosition(console, topLeft);
-}
-#else
-
-void clear_console() {
-	printf("\033[2J\033[1;1H");
-}
-#endif
+// #define RENDER_NCURSES
+#define RENDER_GL
 
 #ifdef RENDER_NCURSES
 	#include <ncurses.h>
@@ -96,7 +71,7 @@ void clear_console() {
 
 int main(int ac, char** av) {
 	vm_t*	vm		= vm_initialize();
-
+	display_t*	display;
 	memory_access_initialize(0);
 
 	if (load_cores(vm, ac, av) <= 0) {
@@ -108,8 +83,13 @@ int main(int ac, char** av) {
 		raw();
 	#endif
 
+	#ifdef RENDER_GL
+		display = display_initialize(1980, 1080);
+	#endif
+
 	while (vm->process_count) {
 		int32 i;
+		int update_display = 0;
 
 		vm->cycle_current++;
 		vm->cycle_total++;
@@ -121,6 +101,7 @@ int main(int ac, char** av) {
 			if (process->cycle_wait <= 0) {
 				vm_reset_process_io_op(process);
 				vm_execute(vm, process);
+				update_display = 1;
 			}
 		}
 
@@ -128,7 +109,6 @@ int main(int ac, char** av) {
 		/*clear_console();*/
 	#ifdef RENDER_NCURSES
 		{
-			// clear();
 			int row, col, mem;
 			getmaxyx(stdscr,row,col);
 	 		mem = 0;
@@ -138,7 +118,6 @@ int main(int ac, char** av) {
 						mvprintw(y, x, "%.2X ", (unsigned char)vm->memory[mem ++]);
 					}
 				}
-
 			}
 			refresh();
 		}
@@ -149,9 +128,20 @@ int main(int ac, char** av) {
 		}
 
 		vm_clean_dead_process(vm);
+
+	#ifdef RENDER_GL
+		if (display_update_input(display) || update_display)
+		{
+			display_step(vm, display);
+		}
+	#endif
 	}
 #ifdef RENDER_NCURSES
 	endwin();
+#endif
+
+#ifdef RENDER_GL
+	display_destroy(display);
 #endif
 	vm_destroy(vm);
 }
