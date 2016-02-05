@@ -80,11 +80,6 @@ typedef struct s_grid_vertex
 	float	i;
 }	t_grid_vertex;
 
-mat4_t*		display_get_projection_view(display_t* display)
-{
-	return &display->projection_view;
-}
-
 
 void display_generate_grid(display_t* display, int memory_size)
 {
@@ -177,10 +172,20 @@ void		display_generate_process_mesh(display_t* display)
 	free(ib);
 }
 
+float	display_text(display_t* display, float x, float y, int32 rgba, char* format, ...) {
+	va_list args;
+	float ret;
+
+	va_start(args, format);
+	ret = display_text_add_va(display->texts, x, y, rgba, format, args);
+	va_end(args);
+	return ret;
+}
+
 void display_scroll_callback(GLFWwindow* window, double dx, double dy)
 {
 	display_t* display = glfwGetWindowUserPointer(window);
-	float display_zoom = display->display_zoom - dy / 10.0f;
+	float display_zoom = display->display_zoom - (float) dy / 10.0f;
 
 	if (display_zoom < 0.01f)
 		display_zoom = 0.01f;
@@ -206,23 +211,31 @@ void display_scroll_callback(GLFWwindow* window, double dx, double dy)
 	display->display_center_x += tx;
 	display->display_center_y += ty;
 }
-
+#ifdef __APPLE__
+#include "TargetConditionals.h"
+#endif
 display_t* display_initialize(int width, int height)
 {
 	display_t*			display = (display_t*)malloc(sizeof(display_t));
-
+	location_t			location[] = {
+		{"in_Position", 0},
+		{"in_Value", 1},
+		{NULL, 0}
+	};
 
 	if (!glfwInit())
 		return NULL;
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_FALSE);
+#ifdef TARGET_OS_MAC
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	GLFWmonitor* monitor = glfwGetPrimaryMonitor();
 
 	const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-	
+
 	glfwWindowHint(GLFW_RED_BITS, mode->redBits);
 	glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
 	glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
@@ -239,7 +252,7 @@ display_t* display_initialize(int width, int height)
 	display->write_texture = display_gl_load_texture("data/write.png");
 	display->read_texture = display_gl_load_texture("data/read.png");
 
-	display_gl_load_shader(&display->memory_shader, "shaders/memory.vert", "shaders/memory.frag");
+	display_gl_load_shader(&display->memory_shader, "shaders/memory.vert", "shaders/memory.frag", location);
 	display->memory_uniform_projection_matrix = glGetUniformLocation(display->memory_shader.id, "uni_ProjectionMatrix");
 	display->memory_uniform_coord = glGetUniformLocation(display->memory_shader.id, "uni_Coord");
 	display->memory_uniform_color = glGetUniformLocation(display->memory_shader.id, "uni_Color");
@@ -257,7 +270,7 @@ display_t* display_initialize(int width, int height)
 		glUseProgram(0);
 	}
 
-	display_gl_load_shader(&display->io_shader, "shaders/io.vert", "shaders/io.frag");
+	display_gl_load_shader(&display->io_shader, "shaders/io.vert", "shaders/io.frag", location);
 	display->io_uniform_projection_matrix = glGetUniformLocation(display->io_shader.id, "uni_ProjectionMatrix");
 	display->io_uniform_color = glGetUniformLocation(display->io_shader.id, "uni_Color");
 	display->io_uniform_texture = glGetUniformLocation(display->io_shader.id, "uni_Texture");
@@ -296,10 +309,6 @@ display_t* display_initialize(int width, int height)
 	// glfwSetCursorPosCallback(display->window, display_mouse_move_callback);
 	glfwSwapInterval(-1);
 	return display;
-}
-
-display_text_t* display_get_text(display_t* display) {
-	return display->texts;
 }
 
 int	 display_should_exit(display_t* display)
@@ -356,7 +365,7 @@ int			display_key_pressed(display_t* display, int key)
 
 void display_render_memory(struct vm_s* vm, display_t* display)
 {
-	float color_mem[] = { 0.4, 0.4, 0.8, 1 };
+	float color_mem[] = { 0.4f, 0.4f, 0.8f, 1.0f };
 
 	display_update_memory(vm, display);
 	glUseProgram(display->memory_shader.id);
@@ -378,8 +387,6 @@ void display_render_io_read(struct vm_s* vm, display_t* display)
 	uint8*  dst;
 	int		size = vm->memory_size;
 
-	glBindTexture(GL_TEXTURE_2D, display->read_texture);
-	glUseProgram(display->io_shader.id);
 
 
 	for (c = 1; c < vm->core_count; ++c)
@@ -392,7 +399,7 @@ void display_render_io_read(struct vm_s* vm, display_t* display)
 		for (i = 0; i < vm->process_count; ++i)
 		{
 			process_t* process = vm->processes[i];
-			if (process->core->id == core->id)
+			if (process->core == core)
 			{
 				for (j = 0; j < process->memory_read_op_count; ++j)
 				{
@@ -405,9 +412,13 @@ void display_render_io_read(struct vm_s* vm, display_t* display)
 			}
 		}
 
+
 		glBindBuffer(GL_ARRAY_BUFFER, display->memory_vertex_buffer);
 		glBufferSubData(GL_ARRAY_BUFFER, 0, display->memory_size * 4, display->memory_temp_buffer);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+		glBindTexture(GL_TEXTURE_2D, display->read_texture);
+		glUseProgram(display->io_shader.id);
 
 		glUniformMatrix4fv(display->io_uniform_projection_matrix, 1, GL_FALSE, display->projection_view.mat.v);
 		glUniform4fv(display->io_uniform_color, 1, core->color);
@@ -607,26 +618,6 @@ void display_update_camera(display_t* display)
 		display->display_center_y + height,
 		display->display_center_y - height,
 		-1000.0f, 1000.0f);
-}
-
-void display_print_ring_buffer(display_t* display, float x, float y, ring_buffer_t* buffer)
-{
-	int32 count = buffer->write_index;
-	int32 index = buffer->read_index;
-	if (count > buffer->size)
-		count = buffer->size;
-	if (count <= 0)
-		return;
-	int mul = 200 / count;
-	int color = 0xffffffff;
-	while (count--)
-	{
-		int alpha = (0xff - (count * mul)) << 24 | 0xffffff;
-		display_text_add(display->texts, x, y, color & alpha, buffer->data[index % buffer->size]);
-		index++;
-		y += stb_easy_font_height();
-	}
-
 }
 
 void display_step(struct vm_s* vm, display_t* display)

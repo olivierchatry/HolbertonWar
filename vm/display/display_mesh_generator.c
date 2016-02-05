@@ -43,7 +43,7 @@ void display_generate_rect(int subDiv, v3_t* min, v3_t* max, float sphere_radius
 }
 
 
-void display_generate_line(int subDiv, v3_t* min, v3_t* max, float sphere_radius, uint8* vb, mesh_definition_t* def, uint16* ib, uint16 start)
+void display_generate_line(int subDiv, v3_t* min, v3_t* max, float size, uint8* vb, mesh_definition_t* def, uint16* ib, uint16 start)
 {
 	v3_t direction;
 	v3_t normal;
@@ -53,9 +53,11 @@ void display_generate_line(int subDiv, v3_t* min, v3_t* max, float sphere_radius
 	v3_norm(&direction, &direction);
 	v3_cross(&direction, &normal, &normal);
 
-	normal.x *= sphere_radius;
-	normal.y *= sphere_radius;
-	normal.z *= sphere_radius;
+	size *= 0.5f;
+
+	normal.x *= size;
+	normal.y *= size;
+	normal.z *= size;
 
 	float  vs[] = {
 		min->x - normal.x, min->y - normal.y, min->z,

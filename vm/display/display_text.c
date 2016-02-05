@@ -97,22 +97,27 @@ void			display_text_destroy(display_text_t* texts)
 
 float stb_easy_font_height();
 
-float	display_text_add(display_text_t* texts, float x, float y, int32 rgba, char* format, ...)
-{
-	va_list args;
+float	display_text_add_va(display_text_t* texts, float x, float y, int32 rgba, char* format, va_list args) {
 	char*	buffer = malloc(MAX_TEXT_LEN);
 	int32	size;
-
-	va_start(args, format);
 	size = vsnprintf(buffer, MAX_TEXT_LEN, format, args);
-	va_end(args);
-
 	texts->texts[texts->text_count % MAX_TEXT].text = buffer;
 	texts->texts[texts->text_count % MAX_TEXT].rgba = rgba;
 	texts->texts[texts->text_count % MAX_TEXT].position.x = x;
 	texts->texts[texts->text_count % MAX_TEXT].position.y = y;
 	texts->text_count++;
 	return stb_easy_font_height() + y + 1;
+}
+
+float	display_text_add(display_text_t* texts, float x, float y, int32 rgba, char* format, ...)
+{
+	va_list args;
+	float ret;
+
+	va_start(args, format);
+	ret = display_text_add_va(texts, x, y, rgba, format, args);
+	va_end(args);
+	return ret;
 }
 
 

@@ -20,7 +20,7 @@ void display_gl_log(int id, const char* desc, int is_shader)
 			glGetShaderInfoLog(id, log_length, &log_length, &log[0]);
 		else
 			glGetProgramInfoLog(id, log_length, &log_length, &log[0]);
-		printf("%s: %s", desc, log);
+		fprintf(stderr, "%s: %s", desc, log);
 		free(log);
 	}
 }
@@ -47,7 +47,7 @@ int32 display_gl_compile_shader(char* name, char* src, int32 type)
 	return shader;
 }
 
-int32 display_gl_load_shader(shader_t* shader, char* vert_file, char* frag_file)
+int32 display_gl_load_shader(shader_t* shader, char* vert_file, char* frag_file, location_t* locations)
 {
 	shader->id = glCreateProgram();
 
@@ -68,6 +68,10 @@ int32 display_gl_load_shader(shader_t* shader, char* vert_file, char* frag_file)
 	glAttachShader(shader->id, shader->vertex_id);
 	glAttachShader(shader->id, shader->fragment_id);
 
+	while (locations->name) {
+		glBindAttribLocation(shader->id, locations->location, locations->name);
+		locations++;
+	}
 	glValidateProgram(shader->id);
 	glLinkProgram(shader->id);
 

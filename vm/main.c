@@ -141,13 +141,13 @@ int main(int ac, char** av) {
 		if (display_update_input(display) || update_display)
 		{
 			float y = 1;
-			y = display_text_add(display_get_text(display), 0, y, 0xffffffff, "live to die    %d", vm->cycle_to_die);
-			y = display_text_add(display_get_text(display), 0, y, 0xffffffff, "live count     %d ", vm->live_count);
-			y = display_text_add(display_get_text(display), 0, y, 0xffffffff, "process count  %d ", vm->process_count);
+			y = display_text(display, 0, y, 0xffffffff, "live to die    %d", vm->cycle_to_die);
+			y = display_text(display, 0, y, 0xffffffff, "live count     %d ", vm->live_count);
+			y = display_text(display, 0, y, 0xffffffff, "process count  %d ", vm->process_count);
 			for (int i = 0; i < vm->core_count; ++i) {
 				core_t* core = vm->cores[i];
 				char* name = core->header ? core->header->name : "Unknow";
-				y = display_text_add(display_get_text(display), 0, y, 0xffffffff, "%s %d", name, core->live_count);
+				y = display_text(display, 0, y, 0xffffffff, "%s %d", name, core->live_count);
 			}
 			display_step(vm, display);
 		}
