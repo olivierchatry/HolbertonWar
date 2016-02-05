@@ -10,7 +10,7 @@
 
 #include	"../../common/holberton-core.h"
 #include	"../../common/ring_buffer.h"
-#include "../memory.h"
+
 #include "../vm.h"
 #include "../core.h"
 

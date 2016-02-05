@@ -19,7 +19,7 @@ vm_t* vm_initialize() {
 
 	vm->memory = (int8*) malloc(VM_MEMORY_SIZE);
 	vm->memory_size = VM_MEMORY_SIZE;
-
+	memset(vm->memory, 0, VM_MEMORY_SIZE);
 	vm->cycle_current = 0;
 	vm->cycle_to_die = VM_CYCLE_TO_DIE;
 	vm->cycle_delta = VM_CYCLE_DELTA;
@@ -97,7 +97,7 @@ process_t*	vm_create_process(vm_t* vm, process_t* parent, int32 pc) {
 	process->memory_callback.fct = memory_callback;
 
 
-	process->pc = pc;
+	process->pc = process->next_pc = pc;
 	process->internal_id = vm->process_counter++;
 	process->cycle_live = vm->cycle_total;
 	process->memory_write_op_count = 0;
@@ -184,8 +184,10 @@ int 				vm_check_opcode(vm_t* vm, process_t* process, int* args, int* regs, int 
 	if (process->current_opcode->opcode) {
 		int32 pc = process->pc + 1;
 		int8 encoding;
-
-		encoding = memory_read8(vm->memory, pc++, &process->core->bound, &process->memory_callback); 
+		
+		pc = memory_bound(pc, &process->core->bound);
+		encoding = memory_read8(vm->memory, pc++, &process->core->bound, &process->memory_callback);
+		pc = memory_bound(pc, &process->core->bound);
 
 		for (; i < process->current_opcode->arg_count; ++i) {
 			int encode = TYPE(encoding, i);
@@ -201,7 +203,6 @@ int 				vm_check_opcode(vm_t* vm, process_t* process, int* args, int* regs, int 
 			else if ( type == OP_ARG_TYPE_ADD ) {
 				regs[i] = memory_read16(vm->memory, pc, &process->core->bound, &process->memory_callback);
 				args[i] = process->pc + regs[i] % modulo;
-				if (args[i] < 0) args[i] += vm->memory_size;
 				args[i] = memory_read32(vm->memory, args[i], &process->core->bound, &process->memory_callback);
 				pc += 2;
 			}
@@ -212,13 +213,14 @@ int 				vm_check_opcode(vm_t* vm, process_t* process, int* args, int* regs, int 
 				args[i] = process->reg[reg - 1];
 				regs[i] = reg - 1;
 			}
+			pc = memory_bound(pc, &process->core->bound);
 		}
-		process->pc = pc;
-		memory_bound(process->pc, &process->core->bound);
+		process->next_pc = pc;
 		return VM_OK;
 	}
 	return VM_ERROR_OPCODE;
 }
+
 
 void	vm_live(vm_t* vm, int32 id)
 {
@@ -256,8 +258,7 @@ int 				vm_execute(vm_t* vm, process_t* process) {
 	printf("\n\n");*/
 
 
-	process->pc = memory_bound(process->pc, &process->core->bound);
-	pc = process->pc;
+	pc = process->pc = process->next_pc;
 	opcode_t* op = vm_get_opcode(vm, process);
 	int32	ret = vm_check_opcode(vm, process, args, regs, VM_MEMORY_MODULO);
 
@@ -289,7 +290,7 @@ int 				vm_execute(vm_t* vm, process_t* process) {
 			}
 		case 0x07:
 			addr = pc + args[0] % VM_MEMORY_MODULO;
-			process->pc = memory_bound(addr, &process->core->bound);
+			process->next_pc = memory_bound(addr, &process->core->bound);
 			process->jump = 1;
 			process->jump_from = pc;
 			process->jump_to = addr;
@@ -304,7 +305,8 @@ int 				vm_execute(vm_t* vm, process_t* process) {
 			process->zero = args[0] == 0;
 			break;
 		case 0x0a:
-			vm_create_process(vm, process, pc + args[0] % VM_MEMORY_MODULO);
+			addr = pc + args[0] % VM_MEMORY_MODULO;
+			vm_create_process(vm, process, memory_bound(addr, &process->core->bound));
 			break;
 		case 0x0b:
 			break;
@@ -334,7 +336,7 @@ int 				vm_execute(vm_t* vm, process_t* process) {
 	}
 
 	if (ret != VM_OK) {
-		process->pc = process->pc + 1;
+		process->next_pc = memory_bound(process->pc + 1, &process->core->bound);
 	}
 
 	return ret;

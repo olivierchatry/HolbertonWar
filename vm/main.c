@@ -87,7 +87,7 @@ int main(int ac, char** av) {
 		display = display_initialize(1980, 1080);
 	#endif
 
-	while (vm->process_count) {
+	while (vm->process_count && !display_should_exit(display)) {
 		int32 i;
 		int update_display = 0;
 

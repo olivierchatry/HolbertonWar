@@ -17,6 +17,7 @@ typedef struct process_s
 {
 
 	int32			pc;
+	int32			next_pc;
 	int32			reg[CORE_REGISTER_COUNT];
 	int32			zero;
 
