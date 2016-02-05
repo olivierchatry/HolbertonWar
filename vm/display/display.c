@@ -211,9 +211,7 @@ void display_scroll_callback(GLFWwindow* window, double dx, double dy)
 	display->display_center_x += tx;
 	display->display_center_y += ty;
 }
-#ifdef __APPLE__
-#include "TargetConditionals.h"
-#endif
+
 display_t* display_initialize(int width, int height)
 {
 	display_t*			display = (display_t*)malloc(sizeof(display_t));
@@ -228,10 +226,12 @@ display_t* display_initialize(int width, int height)
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-#ifdef TARGET_OS_MAC
+#ifdef __APPLE__
+	printf("running on OSX, set compat flag\n");
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#ifndef __APPLE__
 	GLFWmonitor* monitor = glfwGetPrimaryMonitor();
 
 	const GLFWvidmode* mode = glfwGetVideoMode(monitor);
@@ -240,7 +240,7 @@ display_t* display_initialize(int width, int height)
 	glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
 	glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
 	glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
-
+#endif
 	display->window = glfwCreateWindow(width, height, "corewar", NULL, NULL);
 
 	glfwMakeContextCurrent(display->window);

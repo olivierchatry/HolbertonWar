@@ -1,7 +1,7 @@
 #ifndef DISPLAY_H
 #define DISPLAY_H
 
-
+#include <stdarg.h>
 #include	"../../common/holberton-core.h"
 
 

@@ -49,6 +49,7 @@ workspace "HolbertonWar"
 
 		filter "system:macosx"
 			platforms 	{"Universal"}
+			defines {"MACOSX"}
 			includedirs "../externals/glfw/include"
 			libdirs 	"../externals/glfw/lib/osx"
 			links       { "glfw3", "OpenGL.framework", "CoreFoundation.framework", "CoreVideo.framework", "Cocoa.framework", "IOKit.framework", "AGL.framework"}
