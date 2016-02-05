@@ -68,7 +68,7 @@ typedef struct display_s
 	display_mesh_renderer_t*	mesh_renderer;
 	mesh_t*										process_mesh;
 	mat4_t										projection_view;
-	t_display_text*						texts;
+	display_text_t*						texts;
 
 } display_t;
 
@@ -220,7 +220,9 @@ display_t* display_initialize(int width, int height)
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_FALSE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+
 	const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+	
 	glfwWindowHint(GLFW_RED_BITS, mode->redBits);
 	glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
 	glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
@@ -294,6 +296,10 @@ display_t* display_initialize(int width, int height)
 	// glfwSetCursorPosCallback(display->window, display_mouse_move_callback);
 	glfwSwapInterval(-1);
 	return display;
+}
+
+display_text_t* display_get_text(display_t* display) {
+	return display->texts;
 }
 
 int	 display_should_exit(display_t* display)
@@ -602,7 +608,6 @@ void display_update_camera(display_t* display)
 		display->display_center_y - height,
 		-1000.0f, 1000.0f);
 }
-float stb_easy_font_height();
 
 void display_print_ring_buffer(display_t* display, float x, float y, ring_buffer_t* buffer)
 {
@@ -643,8 +648,14 @@ void display_step(struct vm_s* vm, display_t* display)
 	glDisable(GL_BLEND);
 	display_render_io_process(vm, display);
 	glEnable(GL_BLEND);
-	//display_text_render(display->texts, &display->projection_view);
-	//display_text_clear(display->texts);
+	{
+		mat4_t projection;
+		mat4_ident(&projection);
+		mat4_ortho(&projection, 0, display->frame_buffer_width * 0.5f, display->frame_buffer_height * 0.5f, 0, -1000, 1000);
+		display_text_render(display->texts, &projection);
+		display_text_clear(display->texts);
+	}
+
 	glfwSwapBuffers(display->window);
 	glfwPollEvents();
 

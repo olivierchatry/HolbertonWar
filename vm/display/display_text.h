@@ -2,12 +2,12 @@
 #define DISPLAY_TEXT_H
 
 
-struct s_display_text;
-typedef struct s_display_text t_display_text;
+struct display_text_s;
+typedef struct display_text_s display_text_t;
 
-t_display_text* display_text_intialize();
-void			display_text_destroy(t_display_text* texts);
-void			display_text_add(t_display_text* texts, float x, float y, int32 rgba, char* format, ...);
-void			display_text_render(t_display_text* texts, mat4_t* projection_view);
-void			display_text_clear(t_display_text* texts);
+display_text_t* display_text_intialize();
+void			display_text_destroy(display_text_t* texts);
+float			display_text_add(display_text_t* texts, float x, float y, int32 rgba, char* format, ...);
+void			display_text_render(display_text_t* texts, mat4_t* projection_view);
+void			display_text_clear(display_text_t* texts);
 #endif

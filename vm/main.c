@@ -4,7 +4,7 @@
 #include "core.h"
 #include "vm.h"
 #include "display/display.h"
-
+#include "display/display_text.h"
 #include "../common/utils.h"
 #include "../common/memory_access.h"
 
@@ -55,6 +55,7 @@ int load_cores(vm_t* vm, int ac, char** av) {
 			infos[i].address = (vm->memory_size/ current_core) * i;
 		}
 		VM_MEMORY_BOUND(vm, infos[i].address);
+		infos[i].core->start_address = infos[i].address;
 		infos[i].core->id = infos[i].id;
 		vm_add_core(vm, infos[i].core, infos[i].address);
 	}
@@ -76,6 +77,13 @@ int main(int ac, char** av) {
 
 	if (load_cores(vm, ac, av) <= 0) {
 		return -1;
+	}
+	
+	int bound = VM_MEMORY_SIZE / (vm->core_count - 1);
+
+	for (int i = 0; i < vm->core_count; ++i) {
+		vm->cores[i]->bound.start = vm->cores[i]->start_address;
+		vm->cores[i]->bound.size = bound;
 	}
 
 	#ifdef RENDER_NCURSES
@@ -132,10 +140,21 @@ int main(int ac, char** av) {
 	#ifdef RENDER_GL
 		if (display_update_input(display) || update_display)
 		{
+			float y = 1;
+			y = display_text_add(display_get_text(display), 0, y, 0xffffffff, "live to die    %d", vm->cycle_to_die);
+			y = display_text_add(display_get_text(display), 0, y, 0xffffffff, "live count     %d ", vm->live_count);
+			y = display_text_add(display_get_text(display), 0, y, 0xffffffff, "process count  %d ", vm->process_count);
+			for (int i = 0; i < vm->core_count; ++i) {
+				core_t* core = vm->cores[i];
+				char* name = core->header ? core->header->name : "Unknow";
+				y = display_text_add(display_get_text(display), 0, y, 0xffffffff, "%s %d", name, core->live_count);
+			}
 			display_step(vm, display);
 		}
 	#endif
+		
 	}
+
 #ifdef RENDER_NCURSES
 	endwin();
 #endif

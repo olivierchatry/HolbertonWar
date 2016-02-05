@@ -22,7 +22,7 @@ typedef struct s_text
 
 } t_text;
 
-typedef struct s_display_text
+typedef struct display_text_s
 {
 	t_text						texts[MAX_TEXT];
 	int32						text_count;
@@ -31,12 +31,12 @@ typedef struct s_display_text
 	mesh_t*						text_mesh;
 	uint8*						text_mesh_vb;
 	uint32						text_mesh_vb_size;
-} t_display_text;
+} display_text_t;
 
 
-t_display_text* display_text_intialize()
+display_text_t* display_text_intialize()
 {
-	t_display_text* text = malloc(sizeof(t_display_text));
+	display_text_t* text = malloc(sizeof(display_text_t));
 	uint16*			ib;
 	uint16*			temp;
 	int32			size;
@@ -69,7 +69,7 @@ t_display_text* display_text_intialize()
 	return text;
 }
 
-void			display_text_clear(t_display_text* texts)
+void			display_text_clear(display_text_t* texts)
 {
 	int32 i;
 	for (i = 0; i < texts->text_count; ++i)
@@ -80,7 +80,7 @@ void			display_text_clear(t_display_text* texts)
 	texts->text_count = 0;
 }
 
-void			display_text_destroy(t_display_text* texts)
+void			display_text_destroy(display_text_t* texts)
 {
 	int32 i;
 	int32 count = MAX_TEXT;
@@ -95,7 +95,9 @@ void			display_text_destroy(t_display_text* texts)
 	free(texts);
 }
 
-void			display_text_add(t_display_text* texts, float x, float y, int32 rgba, char* format, ...)
+float stb_easy_font_height();
+
+float	display_text_add(display_text_t* texts, float x, float y, int32 rgba, char* format, ...)
 {
 	va_list args;
 	char*	buffer = malloc(MAX_TEXT_LEN);
@@ -110,10 +112,11 @@ void			display_text_add(t_display_text* texts, float x, float y, int32 rgba, cha
 	texts->texts[texts->text_count % MAX_TEXT].position.x = x;
 	texts->texts[texts->text_count % MAX_TEXT].position.y = y;
 	texts->text_count++;
-
+	return stb_easy_font_height() + y + 1;
 }
 
-void			display_text_render(t_display_text* texts, mat4_t* projection_view)
+
+void			display_text_render(display_text_t* texts, mat4_t* projection_view)
 {
 	int32 i;
 	int32 vb_index = 0;
@@ -124,17 +127,14 @@ void			display_text_render(t_display_text* texts, mat4_t* projection_view)
 	v4_set(&color_ambient, 0.0f, 0.0f, 0.0f, 0.0f);
 	mat4_ident(&local);
 
-
 	for (i = 0; i < texts->text_count; ++i)
 	{
 		t_text* text = &(texts->texts[i]);
-		int32 alpha = 64 + (i * 192) / texts->text_count;
-		int32 rgba = (text->rgba & 0x00ffffff) | alpha << 24;
 
 		vb_index += stb_easy_font_print(text->position.x,
 			text->position.y,
 			text->text,
-			(uint8*)&rgba,
+			(uint8*)&text->rgba,
 			texts->text_mesh_vb + vb_index,
 			texts->text_mesh_vb_size) * 64;
 	}

@@ -13,12 +13,15 @@ struct display_s;
 struct vm_s;
 struct mat4_s;
 struct ring_buffer_s;
+struct display_text_s;
 
 
 typedef struct display_s display_t;
 typedef struct mat4_s mat4_t;
 typedef struct ring_buffer_s ring_buffer_t;
+typedef struct display_text_s display_text_t;
 
+display_text_t* display_get_text(display_t* display);
 display_t*	display_initialize(int width, int height);
 int32		display_should_exit(display_t* display);
 void		display_destroy(display_t* display);

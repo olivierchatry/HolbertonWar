@@ -40,8 +40,8 @@ vm_t* vm_initialize() {
 
 	// core[0] is "unknown" core, used when player "live" with a unknown id.
 	vm->cores[vm->core_count] = malloc(sizeof(core_t));
-	vm->cores[vm->core_count++]->live_count = 0;
-
+	vm->cores[vm->core_count]->live_count = 0;
+	vm->cores[vm->core_count++]->header = NULL;
 	return vm;
 }
 
@@ -251,12 +251,6 @@ int 				vm_execute(vm_t* vm, process_t* process) {
 	int32				pc;
 	int32				args[4], regs[4];
 	int32				addr;
-
-	/*for (int i =0; i < 80; ++i) {
-		printf("%.2X ", (unsigned char) vm->memory[i]);
-	}
-	printf("\n\n");*/
-
 
 	pc = process->pc = process->next_pc;
 	opcode_t* op = vm_get_opcode(vm, process);

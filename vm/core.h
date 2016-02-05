@@ -12,6 +12,7 @@ typedef struct core_s {
 	int32								live_last_cycle;
 	float*  						color;
 	bound_t							bound;
+	int									start_address;
 } core_t;
 
 int8*			core_get_code_ptr(core_t* core);
