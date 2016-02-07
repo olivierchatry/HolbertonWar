@@ -22,11 +22,10 @@ typedef struct ring_buffer_s ring_buffer_t;
 
 float				display_text(display_t* display, float x, float y, int32 rgba, char* format, ...);
 
-display_t*	display_initialize(int width, int height);
+display_t*	display_initialize(int width, int height, int full_screen);
 int32				display_should_exit(display_t* display);
 void				display_destroy(display_t* display);
 void				display_step(struct vm_s* vm, display_t* display);
-int					display_key_pressed(display_t* display, int key);
 int32				display_update_input(display_t* display);
-void				display_print_ring_buffer(display_t* display, float x, float y, ring_buffer_t* buffer);
+
 #endif

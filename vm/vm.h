@@ -49,6 +49,7 @@ typedef struct process_s
 typedef struct vm_s
 {
 	int8*		memory;
+	int8*		shadow;
 	int32		memory_size;
 	int32		memory_modulo;
 	int32		live_count;
@@ -58,7 +59,7 @@ typedef struct vm_s
 	int32		cycle_to_die;
 	int32		cycle_delta;
 	int32		cycle_total;
-	int32		cycles_barrier;
+	int32		cycle_barrier;
 
 	process_t**		processes;
 	int32					process_count;
@@ -70,7 +71,8 @@ typedef struct vm_s
 	struct core_s**	cores;
 	int32						core_count;
 
-	int32			dump_to_cycle;
+	int32					dump_to_cycle;
+	int32					full_screen;
 } vm_t;
 
 

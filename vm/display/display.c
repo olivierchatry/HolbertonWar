@@ -146,8 +146,10 @@ void		display_generate_process_mesh(display_t* display)
 	mesh_definition_t* def;
 	int32 vb_size;
 	int32 count = 6;
+	int32 sub_division = 16;
+
 	def = display_mesh_get_definiton(MESH_TYPE_VN);
-	display_generate_sphere_count(8, &vb_count, &ib_count);
+	display_generate_sphere_count(sub_division, &vb_count, &ib_count);
 
 	vb_size = vb_count * def->stride;
 
@@ -155,17 +157,17 @@ void		display_generate_process_mesh(display_t* display)
 	ib = malloc(ib_count * sizeof(uint16) * count);
 
 	v3_set(&center, radius, 0.0f, 0.0f);
-	display_generate_sphere(8, &center, radius * 0.5f, vb, def, ib, 0);
+	display_generate_sphere(sub_division, &center, radius * 0.5f, vb, def, ib, 0);
 	v3_set(&center, -radius, 0.0f, 0.0f);
-	display_generate_sphere(8, &center, radius * 0.5f, vb + vb_size, def, ib + ib_count, vb_count);
+	display_generate_sphere(sub_division, &center, radius * 0.5f, vb + vb_size, def, ib + ib_count, vb_count);
 	v3_set(&center, 0.0f, -radius, 0.0f);
-	display_generate_sphere(8, &center, radius * 0.5f, vb + vb_size * 2, def, ib + ib_count * 2, vb_count * 2);
+	display_generate_sphere(sub_division, &center, radius * 0.5f, vb + vb_size * 2, def, ib + ib_count * 2, vb_count * 2);
 	v3_set(&center, 0.0f, radius, 0.0f);
-	display_generate_sphere(8, &center, radius * 0.5f, vb + vb_size * 3, def, ib + ib_count * 3, vb_count * 3);
+	display_generate_sphere(sub_division, &center, radius * 0.5f, vb + vb_size * 3, def, ib + ib_count * 3, vb_count * 3);
 	v3_set(&center, 0.0f, 0.0f, -radius);
-	display_generate_sphere(8, &center, radius * 0.5f, vb + vb_size * 4, def, ib + ib_count * 4, vb_count * 4);
+	display_generate_sphere(sub_division, &center, radius * 0.5f, vb + vb_size * 4, def, ib + ib_count * 4, vb_count * 4);
 	v3_set(&center, 0.0f, 0.0f, radius);
-	display_generate_sphere(8, &center, radius * 0.5f, vb + vb_size * 5, def, ib + ib_count * 5, vb_count * 5);
+	display_generate_sphere(sub_division, &center, radius * 0.5f, vb + vb_size * 5, def, ib + ib_count * 5, vb_count * 5);
 
 	display->process_mesh = display_mesh_vn_create(vb, vb_count * count, ib, ib_count * count);
 	free(vb);
@@ -212,7 +214,7 @@ void display_scroll_callback(GLFWwindow* window, double dx, double dy)
 	display->display_center_y += ty;
 }
 
-display_t* display_initialize(int width, int height)
+display_t* display_initialize(int width, int height, int full_screen)
 {
 	display_t*			display = (display_t*)malloc(sizeof(display_t));
 	location_t			location[] = {
@@ -231,7 +233,6 @@ display_t* display_initialize(int width, int height)
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-#ifndef __APPLE__
 	GLFWmonitor* monitor = glfwGetPrimaryMonitor();
 
 	const GLFWvidmode* mode = glfwGetVideoMode(monitor);
@@ -240,8 +241,21 @@ display_t* display_initialize(int width, int height)
 	glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
 	glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
 	glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
+
+	glfwWindowHint(GLFW_AUTO_ICONIFY, GL_TRUE);
+	glfwWindowHint(GLFW_FLOATING, GL_FALSE);
+	glfwWindowHint(GLFW_DOUBLEBUFFER, GL_TRUE);
+
+#if defined(_DEBUG)
+	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, 1);
 #endif
-	display->window = glfwCreateWindow(width, height, "corewar", NULL, NULL);
+
+	if (full_screen) {
+		display->window = glfwCreateWindow(mode->width, mode->height, "HolbertonWar", monitor, NULL);
+	}
+	else {
+		display->window = glfwCreateWindow(width, height, "HolbertonWar", NULL, NULL);
+	}
 
 	glfwMakeContextCurrent(display->window);
 	glewExperimental = GL_TRUE;
@@ -307,7 +321,7 @@ display_t* display_initialize(int width, int height)
 	glfwSetWindowUserPointer(display->window, (void*)display);
 	glfwSetScrollCallback(display->window, display_scroll_callback);
 	// glfwSetCursorPosCallback(display->window, display_mouse_move_callback);
-	glfwSwapInterval(-1);
+	glfwSwapInterval(0);
 	return display;
 }
 
@@ -356,12 +370,6 @@ void display_update_memory(struct vm_s* vm, display_t* display)
 	glBindBuffer(GL_ARRAY_BUFFER, display->memory_vertex_buffer);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, display->memory_size * 4, display->memory_temp_buffer);
 }
-
-int			display_key_pressed(display_t* display, int key)
-{
-	return glfwGetKey(display->window, key) == GLFW_PRESS;
-}
-
 
 void display_render_memory(struct vm_s* vm, display_t* display)
 {
@@ -501,35 +509,36 @@ void display_render_io_process(struct vm_s* vm, display_t* display)
 	display_mesh_set_projection(display->mesh_renderer, &display->projection_view);
 	mat4_ident(&local);
 
-	static float angle = 0;
-
 	for (i = 0; i < vm->process_count; ++i)
 	{
 		process_t* process = vm->processes[i];
-		mat4_t normal;
-
-		angle = (float)process->cycle_live * ((float) display->frame_last_time / (float) vm->cycle_total);
-
 		int index = process->pc;
-		float x = (float) (index % display->memory_stride);
-		float y = (float) (index / display->memory_stride);
+	
+		if (vm->shadow[index] < 8) {
+			float angle = (float)process->cycle_create * ((float)display->frame_last_time / (float)vm->cycle_total);
+			mat4_t normal;
+			float x = (float)(index % display->memory_stride);
+			float y = (float)(index / display->memory_stride);
 
-		x = x * DISPLAY_CELL_SIZE + DISPLAY_CELL_SIZE * 0.5f;
-		y = y * DISPLAY_CELL_SIZE + DISPLAY_CELL_SIZE * 0.5f;
+			vm->shadow[index]++;
 
-		mat4_ident(&translate);
-		mat4_translate(&translate, x, y, DISPLAY_CELL_SIZE * 0.5f);
+			x = x * DISPLAY_CELL_SIZE + DISPLAY_CELL_SIZE * 0.5f;
+			y = y * DISPLAY_CELL_SIZE + DISPLAY_CELL_SIZE * 0.5f;
 
-		quat_from_euler(&quat, angle, angle, angle);
-		quat_to_mat4(&quat, &rotation);
-		mat4_invert(&rotation, &normal);
-		mat4_transpose(&normal, &normal);
-		mat4_mul(&translate, &rotation, &local);
+			mat4_ident(&translate);
+			mat4_translate(&translate, x, y, DISPLAY_CELL_SIZE * 0.5f);
 
-		display_mesh_set_local(display->mesh_renderer, &local);
-		display_mesh_set_normal(display->mesh_renderer, &normal);
+			quat_from_euler(&quat, angle, angle, angle);
+			quat_to_mat4(&quat, &rotation);
+			mat4_invert(&rotation, &normal);
+			mat4_transpose(&normal, &normal);
+			mat4_mul(&translate, &rotation, &local);
 
-		display_mesh_render(display->process_mesh);
+			display_mesh_set_local(display->mesh_renderer, &local);
+			display_mesh_set_normal(display->mesh_renderer, &normal);
+
+			display_mesh_render(display->process_mesh);
+		}
 	}
 }
 
@@ -561,6 +570,9 @@ int32 display_update_input(display_t* display)
 
 	if (glfwGetKey(display->window, GLFW_KEY_A) == GLFW_PRESS)
 		display_zoom -= (float)delta, moved = 1;
+
+	if (glfwGetKey(display->window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+		glfwSetWindowShouldClose(display->window, GL_TRUE);
 
 	if (display_zoom < 0.01f)
 		display_zoom = 0.01f;

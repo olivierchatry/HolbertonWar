@@ -16,26 +16,18 @@ static void memory_callback(int add, int write, void* data) {
 
 vm_t* vm_initialize() {
 	vm_t* vm = (vm_t*) malloc(sizeof(vm_t));
+	memset(vm, 0, sizeof(vm_t));
 
 	vm->memory = (int8*) malloc(VM_MEMORY_SIZE);
+	vm->shadow = (int8*)malloc(VM_MEMORY_SIZE);
 	vm->memory_size = VM_MEMORY_SIZE;
 	memset(vm->memory, 0, VM_MEMORY_SIZE);
-	vm->cycle_current = 0;
+
 	vm->cycle_to_die = VM_CYCLE_TO_DIE;
 	vm->cycle_delta = VM_CYCLE_DELTA;
-	vm->cycle_total = 0;
-	vm->live_count = 0;
-	vm->live_total = 0;
-	vm->process_count = 0;
-	vm->process_counter = 0;
 
 	vm->processes = (process_t**) malloc(sizeof(process_t*) * VM_MAX_PROCESSES);
-	vm->process_count = 0;
-
 	vm->processes_pool = (process_t**)malloc(sizeof(process_t*) * VM_MAX_PROCESSES);
-	vm->process_pool_count = 0;
-
-	vm->core_count = 0;
 	vm->cores = (core_t**)malloc(sizeof(core_t*) * VM_MAX_CORES + 1);
 
 	// core[0] is "unknown" core, used when player "live" with a unknown id.
@@ -147,6 +139,7 @@ void vm_clean_dead_process(vm_t* vm) {
 		if (vm->processes[previous]->free == 0) {
 			vm->processes[current++] = vm->processes[previous];
 		}
+
 	}
 	vm->process_count = current;
 }
@@ -166,7 +159,7 @@ void	vm_kill_process_if_no_live(vm_t* vm) {
 
 opcode_t* vm_get_opcode(vm_t* vm, process_t* process) {
 	opcode_t* temp = holberton_core_get_opcodes();
-	int8 opcode = memory_read8(vm->memory, process->pc, &process->core->bound, &process->memory_callback);
+	int8 opcode = memory_read8(vm->memory, process->pc, &process->core->bound, NULL);
 
 	while ((temp->opcode != 0) && (temp->opcode != opcode))
 		temp++;
@@ -186,7 +179,7 @@ int 				vm_check_opcode(vm_t* vm, process_t* process, int* args, int* regs, int 
 		int8 encoding;
 		
 		pc = memory_bound(pc, &process->core->bound);
-		encoding = memory_read8(vm->memory, pc++, &process->core->bound, &process->memory_callback);
+		encoding = memory_read8(vm->memory, pc++, &process->core->bound, NULL);
 		pc = memory_bound(pc, &process->core->bound);
 
 		for (; i < process->current_opcode->arg_count; ++i) {
@@ -196,22 +189,23 @@ int 				vm_check_opcode(vm_t* vm, process_t* process, int* args, int* regs, int 
 			if ( (type & process->current_opcode->arg_types[i]) == 0 )
 				return VM_ERROR_ENCODING;
 			if ( type == OP_ARG_TYPE_IMM ) {
-				args[i] = memory_read32(vm->memory, pc, &process->core->bound, &process->memory_callback);
+				args[i] = memory_read32(vm->memory, pc, &process->core->bound, NULL);
 				regs[i] = -1;
 				pc += 4;
 			}
 			else if ( type == OP_ARG_TYPE_ADD ) {
-				regs[i] = memory_read16(vm->memory, pc, &process->core->bound, &process->memory_callback);
+				regs[i] = memory_read16(vm->memory, pc, &process->core->bound, NULL);
 				args[i] = process->pc + regs[i] % modulo;
 				args[i] = memory_read32(vm->memory, args[i], &process->core->bound, &process->memory_callback);
 				pc += 2;
 			}
 			else {
-				int8 reg = vm->memory[pc++];
+				int8 reg = memory_read8(vm->memory, pc, &process->core->bound, NULL);
 				if (reg <= 0 || reg > CORE_REGISTER_COUNT)
 					return VM_ERROR_REGISTER;
 				args[i] = process->reg[reg - 1];
 				regs[i] = reg - 1;
+				pc++;
 			}
 			pc = memory_bound(pc, &process->core->bound);
 		}
@@ -319,8 +313,8 @@ int 				vm_execute(vm_t* vm, process_t* process) {
 			process->zero = args[0] == 0;
 			break;
 		case 0x0f:
-			process->reg[regs[0]] = vm->cycles_barrier;
-			process->zero = vm->cycles_barrier == 0;
+			process->reg[regs[0]] = vm->cycle_barrier;
+			process->zero = vm->cycle_barrier == 0;
 			break;
 		default:
 			ret = VM_ERROR_OPCODE;

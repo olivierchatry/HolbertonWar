@@ -49,9 +49,9 @@ static int32 parse_number(generator_t* generator, char* value, int32 type) {
 	}
 
 	if (*value == 'b') {
-		ret = strtoll(value + 1, &end, 2);
+		ret = (int32) strtoll(value + 1, &end, 2);
 	} else {
-		ret = strtoll(value, &end, 0);
+		ret = (int32) strtoll(value, &end, 0);
 	}
 	if (*end != 0) {
 		generator->error = ASM_INVALID_NUMBER;

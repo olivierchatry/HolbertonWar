@@ -39,7 +39,9 @@ int load_cores(vm_t* vm, int ac, char** av) {
 		else if (strcmp("-a", av[i]) == 0)
 			infos[current_core].address = strtol(av[++i], &end, 0), infos[i].have_address = 1;
 		else if (strcmp("-bc", av[i]) == 0)
-			vm->cycles_barrier = strtol(av[++i], &end, 0);
+			vm->cycle_barrier = strtol(av[++i], &end, 0);
+		else if (strcmp("-fs", av[i]) == 0)
+			vm->full_screen = 1;
 		else {
 			core_t* core = core_load_from_file(av[i]);
 			if (core) {
@@ -90,17 +92,29 @@ int main(int ac, char** av) {
 		initscr();
 		raw();
 	#endif
-
-	#ifdef RENDER_GL
-		display = display_initialize(1980, 1080);
-	#endif
+#if defined(_DEBUG)
+		vm->full_screen = 0;
+#endif
+	
+#ifdef RENDER_GL
+		display = display_initialize(1980, 1080, vm->full_screen);
+#endif
 
 	while (vm->process_count && !display_should_exit(display)) {
 		int32 i;
 		int update_display = 0;
 
+
+		if (vm->cycle_barrier == vm->cycle_total) {
+			for (i = 0; i < vm->core_count; ++i) {
+				vm->cores[i]->bound.start = 0;
+				vm->cores[i]->bound.size = vm->memory_size;
+			}
+		}
+
 		vm->cycle_current++;
 		vm->cycle_total++;
+
 
 		int32 process_count = vm->process_count;
 		for (i = 0; i < process_count; ++i) {
@@ -112,7 +126,6 @@ int main(int ac, char** av) {
 				update_display = 1;
 			}
 		}
-
 		// printf("cycle %d, process count %d, live count %d, cycle to die %d\n", vm->cycle_total, vm->process_count, vm->live_count, vm->cycle_to_die);
 		/*clear_console();*/
 	#ifdef RENDER_NCURSES
@@ -140,10 +153,14 @@ int main(int ac, char** av) {
 	#ifdef RENDER_GL
 		if (display_update_input(display) || update_display)
 		{
+			memset(vm->shadow, 0, vm->memory_size);
+
 			float y = 1;
-			y = display_text(display, 0, y, 0xffffffff, "live to die    %d", vm->cycle_to_die);
+			y = display_text(display, 0, y, 0xffffffff, "cycle to die   %d", vm->cycle_to_die);
 			y = display_text(display, 0, y, 0xffffffff, "live count     %d ", vm->live_count);
 			y = display_text(display, 0, y, 0xffffffff, "process count  %d ", vm->process_count);
+			y = display_text(display, 0, y, 0xffffffff, "cycle          %d ", vm->cycle_total);
+			y = display_text(display, 0, y, 0xffffffff, "barrier        %d ", vm->cycle_barrier);
 			for (int i = 0; i < vm->core_count; ++i) {
 				core_t* core = vm->cores[i];
 				char* name = core->header ? core->header->name : "Unknow";
