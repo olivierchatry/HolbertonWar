@@ -11,6 +11,7 @@ typedef struct core_s {
 	int32								live_count;
 	int32								live_last_cycle;
 	float*  						color;
+	uint32							color_uint;
 	bound_t							bound;
 	int									start_address;
 } core_t;

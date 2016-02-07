@@ -43,50 +43,57 @@ void display_generate_rect(int subDiv, v3_t* min, v3_t* max, float sphere_radius
 }
 
 
-void display_generate_line(int subDiv, v3_t* min, v3_t* max, float size, uint8* vb, mesh_definition_t* def, uint16* ib, uint16 start)
+uint8* display_generate_line(v3_t* min, v3_t* max, float size_start, float size_end, uint32 color, uint8* vb, mesh_definition_t* def)
 {
 	v3_t direction;
-	v3_t normal;
+	v3_t normal, normal_end;
 
 	v3_set(&normal, 0, 0, 1);
 	v3_sub(max, min, &direction);
 	v3_norm(&direction, &direction);
 	v3_cross(&direction, &normal, &normal);
+	v3_norm(&normal, &normal);
 
-	size *= 0.5f;
+	size_start *= 0.5f;
+	size_end *= 0.5f;
 
-	normal.x *= size;
-	normal.y *= size;
-	normal.z *= size;
+	v3_set(&normal_end, normal.x, normal.y, normal.z);
+	normal.x *= size_start;
+	normal.y *= size_start;
+	normal.z *= size_start;
+
+	normal_end.x *= size_end;
+	normal_end.y *= size_end;
+	normal_end.z *= size_end;
 
 	float  vs[] = {
 		min->x - normal.x, min->y - normal.y, min->z,
 		min->x + normal.x, min->y + normal.y, min->z,
-		max->x - normal.x, max->y - normal.y, max->z,
-		max->x + normal.x, max->y + normal.y, max->z,
+		max->x - normal_end.x, max->y - normal_end.y, max->z,
+		max->x + normal_end.x, max->y + normal_end.y, max->z,
+	};
+	int32 indices[] = {
+		0, 1, 3, 0, 3, 2
 	};
 
-	float* vsp = vs;
 	int32 i;
 
-	for (i = 0; i < 4; ++i)
+	for (i = 0; i < 6; ++i)
 	{
 		v3_t* v = (v3_t*)(vb + def->vertex_offset);
 		v3_t* n = (v3_t*)(vb + def->normal_offset);
+		uint32* c = (uint32*)(vb + def->color_offset);
+		float* vsp = vs + indices[i] * 3;
 		v3_set(v, *vsp, *(vsp + 1), *(vsp + 2));
-		vsp += 3;
-		if (def->normal_offset != -1)
+		if (def->normal_offset != -1) {
 			v3_set(n, 0.0f, 0.0f, 1.0f);
+		}
+		if (def->color_offset != -1) {
+			*c = color;
+		}
 		vb += def->stride;
 	}
-
-	*ib++ = start + 0;
-	*ib++ = start + 1;
-	*ib++ = start + 3;
-
-	*ib++ = start + 0;
-	*ib++ = start + 3;
-	*ib++ = start + 2;
+	return vb;
 }
 
 

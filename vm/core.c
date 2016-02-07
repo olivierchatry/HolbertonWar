@@ -14,6 +14,15 @@ float g_colors[4][4] = {
 	{ 0.6f, 0.6f, 1.0f, 1.0f }
 };
 
+uint32 ftouint(float* f) {
+	uint32 r = (uint32) (*f++ * 255.0f);
+	uint32 g = (uint32)(*f++ * 255.0f);
+	uint32 b = (uint32)(*f++ * 255.0f);
+	uint32 a = (uint32)(*f++ * 255.0f);
+
+	return a << 24 | b << 16 | g << 8  | r;
+}
+
 int32 g_core_count = 0;
 
 int32 be_to_le_int32(int32 value) {
@@ -62,10 +71,12 @@ core_t* 	core_load_from_file(const char* file_name) {
 			_read(fd, data, size);
 
 			core = malloc(sizeof(core_t));
+
 			core->header = (core_file_header_t*)data;
 			core->id = 0;
 			core->live_count = 0;
 			core->color = g_colors[g_core_count++];
+			core->color_uint = ftouint(core->color);
 		}
 	}
 

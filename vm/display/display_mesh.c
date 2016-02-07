@@ -119,7 +119,12 @@ mesh_t* display_mesh_vn_create(void* vertices, int32 vertex_count, uint16* indic
 	mesh->count = index_count;
 	mesh->type = MESH_TYPE_VN;
 	mesh->vb = display_gl_create_buffer(GL_ARRAY_BUFFER, vertex_count * sizeof(mesh_vn_t), GL_STATIC_DRAW, vertices);
-	mesh->ib = display_gl_create_buffer(GL_ELEMENT_ARRAY_BUFFER, index_count * sizeof(uint16), GL_STATIC_DRAW, indices);
+	if (index_count > 0) {
+		mesh->ib = display_gl_create_buffer(GL_ELEMENT_ARRAY_BUFFER, index_count * sizeof(uint16), GL_STATIC_DRAW, indices);
+	}
+	else {
+		mesh->ib = 0;
+	}
 	mesh->vao = display_gl_create_vao();
 	glBindVertexArray(mesh->vao);
 	glBindBuffer(GL_ARRAY_BUFFER, mesh->vb);
@@ -138,7 +143,12 @@ mesh_t* display_mesh_vc_create(void* vertices, int32 vertex_count, uint16* indic
 	mesh->count = index_count;
 	mesh->type = MESH_TYPE_VC;
 	mesh->vb = display_gl_create_buffer(GL_ARRAY_BUFFER, vertex_count * sizeof(mesh_vc_t), GL_STATIC_DRAW, vertices);
-	mesh->ib = display_gl_create_buffer(GL_ELEMENT_ARRAY_BUFFER, index_count * sizeof(uint16), GL_STATIC_DRAW, indices);
+	if (index_count > 0) {
+		mesh->ib = display_gl_create_buffer(GL_ELEMENT_ARRAY_BUFFER, index_count * sizeof(uint16), GL_STATIC_DRAW, indices);
+	}
+	else {
+		mesh->ib = 0;
+	}
 	mesh->vao = display_gl_create_vao();
 	glBindVertexArray(mesh->vao);
 	glBindBuffer(GL_ARRAY_BUFFER, mesh->vb);
@@ -158,7 +168,12 @@ mesh_t* display_mesh_v_create(void* vertices, int32 vertex_count, uint16* indice
 	mesh->count = index_count;
 	mesh->type = MESH_TYPE_V;
 	mesh->vb = display_gl_create_buffer(GL_ARRAY_BUFFER, vertex_count * sizeof(t_mesh_v), GL_STATIC_DRAW, vertices);
-	mesh->ib = display_gl_create_buffer(GL_ELEMENT_ARRAY_BUFFER, index_count * sizeof(uint16), GL_STATIC_DRAW, indices);
+	if (index_count > 0) {
+		mesh->ib = display_gl_create_buffer(GL_ELEMENT_ARRAY_BUFFER, index_count * sizeof(uint16), GL_STATIC_DRAW, indices);
+	}
+	else {
+		mesh->ib = 0;
+	}
 	mesh->vao = display_gl_create_vao();
 	glBindVertexArray(mesh->vao);
 	glBindBuffer(GL_ARRAY_BUFFER, mesh->vb);
@@ -187,20 +202,32 @@ void display_mesh_render_start(display_mesh_renderer_t* renderer, int type)
 void display_mesh_render(mesh_t* mesh)
 {
 	glBindVertexArray(mesh->vao);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->ib);
-	glDrawElements(GL_TRIANGLES, mesh->count, GL_UNSIGNED_SHORT, 0);
 
-	glBindVertexArray(0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	if (mesh->ib) {
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->ib);
+		glDrawElements(GL_TRIANGLES, mesh->count, GL_UNSIGNED_SHORT, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
+	}
+	else {
+		glDrawArrays(GL_TRIANGLES, 0, mesh->count);
+		glBindVertexArray(0);
+	}
+
 }
 
-void display_mesh_render_count(mesh_t* mesh, int32 count)
-{
+void display_mesh_render_count(mesh_t* mesh, int32 count) {
 	glBindVertexArray(mesh->vao);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->ib);
-	glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_SHORT, 0);
-	glBindVertexArray(0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	if (mesh->ib) {
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->ib);
+		glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_SHORT, 0);
+		glBindVertexArray(0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	}
+	else {
+		glDrawArrays(GL_TRIANGLES, 0, count);
+		glBindVertexArray(0);
+	}
 }
 
 void display_mesh_set_ambient(display_mesh_renderer_t* renderer, v4_t* color)

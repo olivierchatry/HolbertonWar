@@ -37,8 +37,7 @@ void						display_mesh_set_diffuse(display_mesh_renderer_t* renderer, v4_t* colo
 void						display_mesh_set_projection(display_mesh_renderer_t* renderer, mat4_t* projection);
 void						display_mesh_set_local(display_mesh_renderer_t* renderer, mat4_t* local);
 void						display_mesh_set_normal(display_mesh_renderer_t* renderer, mat4_t* normal);
-
-int32						display_mesh_get_ib(mesh_t* mesh);
+void						display_mesh_destroy(mesh_t* mesh);
 int32						display_mesh_get_vb(mesh_t* mesh);
 void						display_mesh_render_count(mesh_t* mesh, int32 count);
 #endif

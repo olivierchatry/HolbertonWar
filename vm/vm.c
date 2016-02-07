@@ -8,11 +8,14 @@
 
 static void memory_callback(int add, int write, void* data) {
 	process_t* process = (process_t*) data;
-	if (write)
+	if (write) {
 		process->memory_write_op[process->memory_write_op_count++] = add;
-	else
+	}
+	else {
 		process->memory_read_op[process->memory_read_op_count++] = add;
+	}
 }
+
 
 vm_t* vm_initialize() {
 	vm_t* vm = (vm_t*) malloc(sizeof(vm_t));
@@ -34,13 +37,14 @@ vm_t* vm_initialize() {
 	vm->cores[vm->core_count] = malloc(sizeof(core_t));
 	vm->cores[vm->core_count]->live_count = 0;
 	vm->cores[vm->core_count++]->header = NULL;
+
 	return vm;
 }
 
 void vm_destroy(vm_t* vm) {
 	int32 i = 0;
 	free(vm->memory);
-
+	free(vm->shadow);
 	for (; i < vm->process_count; ++i) {
 		if (!vm->processes[i]->free) {
 			free(vm->processes[i]);
@@ -126,6 +130,7 @@ process_t*	vm_add_core(vm_t* vm, core_t* core, int32 offset) {
 }
 
 void	vm_reset_process_io_op(process_t* process) {
+	int i;
 	process->memory_read_op_count = 0;
 	process->memory_write_op_count = 0;
 	process->jump = 0;

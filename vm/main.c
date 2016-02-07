@@ -59,6 +59,7 @@ int load_cores(vm_t* vm, int ac, char** av) {
 		VM_MEMORY_BOUND(vm, infos[i].address);
 		infos[i].core->start_address = infos[i].address;
 		infos[i].core->id = infos[i].id;
+
 		vm_add_core(vm, infos[i].core, infos[i].address);
 	}
 
