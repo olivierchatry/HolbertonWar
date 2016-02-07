@@ -72,6 +72,33 @@ int load_cores(vm_t* vm, int ac, char** av) {
 	#include <ncurses.h>
 #endif
 
+void print_winning_core(vm_t* vm)
+{
+	core_t*		winning = NULL;
+	int32			count = 0;
+	int32			i;
+
+	for (i = 0; i < vm->core_count; ++i)
+	{
+		if ((winning == NULL) || (vm->cores[i]->live_last_cycle > winning->live_last_cycle))
+			winning = vm->cores[i];
+	}
+	// tie detection
+	for (i = 0; i < vm->core_count; ++i)
+	{
+		count += winning == vm->cores[i];
+	}
+	if (count > 1 || winning == vm->cores[0])
+	{
+		printf("it's a tie !\n");
+	}
+	else
+	{
+		printf("%s win \n", winning->header->name);
+	}
+}
+
+
 int main(int ac, char** av) {
 	vm_t*	vm		= vm_initialize();
 	display_t*	display;
@@ -175,7 +202,7 @@ int main(int ac, char** av) {
 #ifdef RENDER_NCURSES
 	endwin();
 #endif
-
+	print_winning_core(vm);
 #ifdef RENDER_GL
 	display_destroy(display);
 #endif
