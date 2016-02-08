@@ -437,6 +437,8 @@ void display_render_io(struct vm_s* vm, display_t* display)
 	for (c = 1; c < vm->core_count; ++c)
 	{
 		core_t* core = vm->cores[c];
+		uint32 jump_color = core->color_uint & 0xffffff;
+		jump_color |= 0x10000000;
 
 		memset(dst_read, 0, display->memory_size * 4);
 		memset(dst_write, 0, display->memory_size * 4);
@@ -468,10 +470,10 @@ void display_render_io(struct vm_s* vm, display_t* display)
 				if (process->jump) {
 					v3_t start;
 					v3_t end;
-					
+					float size = LERP(0.0f, DISPLAY_CELL_SIZE, (float) process->cycle_wait / (float) process->current_opcode->cycles);
 					display_get_position(process->jump_from, &start);
 					display_get_position(process->jump_to, &end);
-					jump_vertex_buffer = display_generate_line(&start, &end, DISPLAY_CELL_SIZE, 0.0f, process->core->color_uint, jump_vertex_buffer, def);
+					jump_vertex_buffer = display_generate_line(&start, &end, size, size * 0.5f, jump_color, jump_vertex_buffer, def);
 					display->jump_count++;
 				}
 			}
@@ -661,6 +663,9 @@ void display_render_jump(display_t* display) {
 	mat4_ident(&local);
 
 	if (display->jump_count > 0) {
+		glDisable(GL_DEPTH_TEST);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
 		glBindBuffer(GL_ARRAY_BUFFER, display_mesh_get_vb(display->jump_mesh));
 		glBufferSubData(GL_ARRAY_BUFFER, 0, display->jump_count * 16 * 6, display->jump_vertex_buffer);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);

@@ -3,7 +3,7 @@
 
 #include <math.h>
 
-
+#define LERP(s, e, a) ( s * a ) + ( e * (1.0f - a) )
 struct v4_s
 {
 	float x;
