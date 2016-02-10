@@ -130,7 +130,6 @@ process_t*	vm_add_core(vm_t* vm, core_t* core, int32 offset) {
 }
 
 void	vm_reset_process_io_op(process_t* process) {
-	int i;
 	process->memory_read_op_count = 0;
 	process->memory_write_op_count = 0;
 	process->jump = 0;

@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <memory.h>
 
 #include "../common/utils.h"
 #include "core.h"
@@ -71,7 +72,7 @@ core_t* 	core_load_from_file(const char* file_name) {
 			_read(fd, data, size);
 
 			core = malloc(sizeof(core_t));
-
+			memset(core, 0, sizeof(core_t));
 			core->header = (core_file_header_t*)data;
 			core->id = 0;
 			core->live_count = 0;

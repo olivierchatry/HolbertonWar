@@ -79,7 +79,7 @@ void print_winning_core(vm_t* vm)
 	int32			count = 0;
 	int32			i;
 
-	for (i = 0; i < vm->core_count; ++i)
+	for (i = 1; i < vm->core_count; ++i)
 	{
 		if ((winning == NULL) || (vm->cores[i]->live_last_cycle > winning->live_last_cycle))
 			winning = vm->cores[i];
@@ -101,8 +101,9 @@ void print_winning_core(vm_t* vm)
 
 
 int main(int ac, char** av) {
-	vm_t*	vm		= vm_initialize();
-	display_t*	display;
+	vm_t*				vm		= vm_initialize();
+	display_t*	display = NULL;
+	
 	memory_access_initialize(0);
 
 	if (load_cores(vm, ac, av) <= 0) {

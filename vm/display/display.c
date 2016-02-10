@@ -348,7 +348,7 @@ display_t* display_initialize(int width, int height, int full_screen)
 
 int	 display_should_exit(display_t* display)
 {
-	return glfwWindowShouldClose(display->window);
+	return display && glfwWindowShouldClose(display->window);
 }
 
 void display_destroy(display_t* display) {
