@@ -98,7 +98,6 @@ process_t*	vm_create_process(vm_t* vm, process_t* parent, int32 pc) {
 	process->cycle_live = vm->cycle_total;
 	process->memory_write_op_count = 0;
 	process->memory_read_op_count = 0;
-	process->jump = 0;
 	// new process always wait 1 more cycles.
 	process->cycle_wait ++;
 
@@ -132,7 +131,6 @@ process_t*	vm_add_core(vm_t* vm, core_t* core, int32 offset) {
 void	vm_reset_process_io_op(process_t* process) {
 	process->memory_read_op_count = 0;
 	process->memory_write_op_count = 0;
-	process->jump = 0;
 }
 
 void vm_clean_dead_process(vm_t* vm) {
@@ -220,7 +218,7 @@ int 				vm_check_opcode(vm_t* vm, process_t* process, int* args, int* regs, int 
 }
 
 
-void	vm_live(vm_t* vm, int32 id)
+void	vm_live(vm_t* vm, process_t* process, int32 id)
 {
 	int32 i;
 
@@ -230,19 +228,18 @@ void	vm_live(vm_t* vm, int32 id)
 	{
 		vm->cycle_to_die -= vm->cycle_delta;
 	}
-
+	process->last_core_live = vm->cores[0];
 	for (i = 1; i < vm->core_count; ++i)
 	{
 		if (vm->cores[i]->id == id)
 		{
-			vm->cores[i]->live_count++;
-			vm->cores[i]->live_last_cycle = vm->cycle_total;
-			return;
+			process->last_core_live = vm->cores[i];
+			break;
 		}
 	}
 
-	vm->cores[0]->live_count++;
-	vm->cores[0]->live_last_cycle = vm->cycle_total;
+	process->last_core_live->live_count++;
+	process->last_core_live->live_last_cycle = vm->cycle_total;
 }
 
 int 				vm_execute(vm_t* vm, process_t* process) {
@@ -283,7 +280,6 @@ int 				vm_execute(vm_t* vm, process_t* process) {
 		case 0x07:
 			addr = pc + args[0] % VM_MEMORY_MODULO;
 			process->next_pc = memory_bound(addr, &process->core->bound);
-			process->jump = 1;
 			process->jump_from = pc;
 			process->jump_to = addr;
 			break;
@@ -304,7 +300,7 @@ int 				vm_execute(vm_t* vm, process_t* process) {
 			break;
 		case 0x0c:
 			process->cycle_live = vm->cycle_total;
-			vm_live(vm, args[0]);
+			vm_live(vm, process, args[0]);
 			break;
 		case 0x0d:
 			addr = pc + (args[0] + args[1]) % VM_MEMORY_MODULO;

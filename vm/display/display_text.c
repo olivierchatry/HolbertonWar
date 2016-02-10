@@ -27,8 +27,8 @@ typedef struct display_text_s
 	t_text						texts[MAX_TEXT];
 	int32						text_count;
 
-	display_mesh_renderer_t*	text_renderer;
-	mesh_t*						text_mesh;
+	t_display_mesh_renderer*	text_renderer;
+	t_mesh*						text_mesh;
 	uint8*						text_mesh_vb;
 	uint32						text_mesh_vb_size;
 } display_text_t;
@@ -60,7 +60,7 @@ display_text_t* display_text_intialize()
 	}
 
 
-	mesh_definition_t* def = display_mesh_get_definiton(MESH_TYPE_VC);
+	t_mesh_definition* def = display_mesh_get_definiton(MESH_TYPE_VC);
 	text->text_mesh_vb_size = MAX_TEXT * MAX_TEXT_LEN * 4 * def->stride;
 	text->text_mesh = display_mesh_vc_create(NULL, text->text_mesh_vb_size, ib, size);
 	free(ib);

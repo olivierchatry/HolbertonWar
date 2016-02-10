@@ -23,6 +23,8 @@ typedef struct process_s
 
 	int32			cycle_wait;
 	int32			cycle_live;
+	core_t*		last_core_live;
+
 	opcode_t*	current_opcode;
 
 	int32			free;
@@ -35,7 +37,6 @@ typedef struct process_s
 	int16			memory_write_op[VM_PROCESS_MAX_IO];
 	int16 		memory_write_op_count;
 
-	int32			jump;
 	int16			jump_from;
 	int16			jump_to;
 

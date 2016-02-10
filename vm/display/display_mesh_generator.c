@@ -5,45 +5,65 @@
 #include "display_mesh.h"
 #include "display_gl.h"
 
-void display_generate_rect_count(int32 subDiv, int32* vertex_count, int32* index_count)
+void display_generate_rect_count(int32* vertex_count, int32* index_count)
 {
-	*vertex_count = 4;
-	*index_count = 6;
+	if (vertex_count) {
+		*vertex_count = 4;
+	}
+	if (index_count) {
+		*index_count = 6;
+	}
 }
 
-void display_generate_rect(int subDiv, v3_t* min, v3_t* max, float sphere_radius, uint8* vb, mesh_definition_t* def, uint16* ib, uint16 start)
+int8* display_generate_rect(v3_t* min, v3_t* max, uint32 color, uint8* vb, t_mesh_definition* def)
 {
 	float  vs[] = {
-		min->x, min->y, min->z,
-		max->x, min->y, min->z,
-		min->x, max->y, min->z,
-		max->x, max->y, min->z
+		min->x, min->y, min->z, 0.0f, 0.0f,
+		max->x, min->y, min->z, 1.0f, 0.0f,
+		min->x, max->y, min->z, 0.0f, 1.0f,
+		max->x, max->y, min->z, 1.0f, 1.0f
 	};
+	
+	int32 indices[] = {
+		0, 1, 3, 0, 3, 2
+	};
+
 	float* vsp = vs;
 	int32 i;
 
-	for (i = 0; i < 4; ++i)
+	for (i = 0; i < 6; ++i)
 	{
 		v3_t* v = (v3_t*)(vb + def->vertex_offset);
-		v3_t* n = (v3_t*)(vb + def->normal_offset);
+		float* vsp = vs + indices[i] * 5;
 		v3_set(v, *vsp, *(vsp + 1), *(vsp + 2));
-		vsp += 3;
-		if (def->normal_offset != -1)
-			v3_set(n, 0.0f, 0.0f, 1.0f);
+
+		if (def->uv_offset != -1) {
+			v2_t* uv = (v2_t*)(vb + def->uv_offset);
+			v2_set(uv, *(vsp + 3), *(vsp + 4));
+		}
+
+		if (def->color_offset != -1) {
+			uint32* c = (uint32*)(vb + def->color_offset);
+			*c = color;
+		}
 		vb += def->stride;
 	}
+	return vb;
 
-	*ib++ = start + 0;
-	*ib++ = start + 1;
-	*ib++ = start + 3;
+}
 
-	*ib++ = start + 0;
-	*ib++ = start + 3;
-	*ib++ = start + 2;
+void display_generate_line_count(int32* vertex_count, int32* index_count)
+{
+	if (vertex_count) {
+		*vertex_count = 4;
+	}
+	if (index_count) {
+		*index_count = 6;
+	}
 }
 
 
-uint8* display_generate_line(v3_t* min, v3_t* max, float size_start, float size_end, uint32 color, uint8* vb, mesh_definition_t* def)
+uint8* display_generate_line(v3_t* min, v3_t* max, float size_start, float size_end, uint32 color, uint8* vb, t_mesh_definition* def)
 {
 	v3_t direction;
 	v3_t normal, normal_end;
@@ -67,11 +87,12 @@ uint8* display_generate_line(v3_t* min, v3_t* max, float size_start, float size_
 	normal_end.z *= size_end;
 
 	float  vs[] = {
-		min->x - normal.x, min->y - normal.y, min->z,
-		min->x + normal.x, min->y + normal.y, min->z,
-		max->x - normal_end.x, max->y - normal_end.y, max->z,
-		max->x + normal_end.x, max->y + normal_end.y, max->z,
+		min->x - normal.x, min->y - normal.y, min->z, 0.0f, 0.0f,
+		min->x + normal.x, min->y + normal.y, min->z, 1.0f, 0.0f,
+		max->x - normal_end.x, max->y - normal_end.y, max->z, 0.0f, 1.0f,
+		max->x + normal_end.x, max->y + normal_end.y, max->z, 1.0f, 1.0f
 	};
+
 	int32 indices[] = {
 		0, 1, 3, 0, 3, 2
 	};
@@ -81,14 +102,16 @@ uint8* display_generate_line(v3_t* min, v3_t* max, float size_start, float size_
 	for (i = 0; i < 6; ++i)
 	{
 		v3_t* v = (v3_t*)(vb + def->vertex_offset);
-		v3_t* n = (v3_t*)(vb + def->normal_offset);
-		uint32* c = (uint32*)(vb + def->color_offset);
-		float* vsp = vs + indices[i] * 3;
+		float* vsp = vs + indices[i] * 5;
 		v3_set(v, *vsp, *(vsp + 1), *(vsp + 2));
-		if (def->normal_offset != -1) {
-			v3_set(n, 0.0f, 0.0f, 1.0f);
+		
+		if (def->uv_offset != -1) {
+			v2_t* uv = (v2_t*)(vb + def->uv_offset);
+			v2_set(uv, *(vsp + 3), *(vsp + 4));
 		}
+
 		if (def->color_offset != -1) {
+			uint32* c = (uint32*)(vb + def->color_offset);
 			*c = color;
 		}
 		vb += def->stride;
@@ -110,7 +133,7 @@ void v3_polar(float phi, float theta, float radius, v3_t* out)
 	out->z = radius * cosf(phi);
 }
 
-void display_generate_sphere(int subDiv, v3_t* center, float sphere_radius, uint8* vb, mesh_definition_t* def, uint16* ib, uint16 start)
+void display_generate_sphere(int subDiv, v3_t* center, float sphere_radius, uint8* vb, t_mesh_definition* def, uint16* ib, uint16 start)
 {
 	int32 i = subDiv + 1;
 	float delta = DISPLAY_M_PI / (subDiv);

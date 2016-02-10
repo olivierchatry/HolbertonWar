@@ -29,6 +29,8 @@ typedef struct display_s
 	GLuint			hex_texture;
 	GLuint			write_texture;
 	GLuint			read_texture;
+	GLuint			live_texture;
+
 	shader_t		memory_shader;
 	GLuint			memory_grid_vertex_buffer;
 	GLuint			memory_grid_index_buffer;
@@ -48,6 +50,7 @@ typedef struct display_s
 	float				memory_width;
 	float				memory_height;
 	int32				memory_stride;
+	
 	shader_t		io_shader;
 	GLuint			io_uniform_projection_matrix;
 	GLuint			io_uniform_color;
@@ -67,10 +70,14 @@ typedef struct display_s
 	double		frame_last_time;
 	double		frame_delta;
 
-	display_mesh_renderer_t*	mesh_renderer;
-	mesh_t*										process_mesh;
+	t_mesh*										live_mesh;
+	uint32										live_count;
+	int8*											live_vertex_buffer;
 
-	mesh_t*										jump_mesh;
+	t_display_mesh_renderer*	mesh_renderer;
+	t_mesh*										process_mesh;
+
+	t_mesh*										jump_mesh;
 	int8*											jump_vertex_buffer;
 	uint32										jump_count;
 
@@ -154,7 +161,7 @@ void display_generate_grid(display_t* display, int memory_size)
 	free(temp_ib);
 
 }
-void		display_generate_process_mesh(display_t* display)
+void		display_generate_mesh(display_t* display)
 {
 	int32		vb_count;
 	int32		ib_count;
@@ -162,7 +169,7 @@ void		display_generate_process_mesh(display_t* display)
 	uint16* ib;
 	v3_t 		center;
 	float 	radius = DISPLAY_CELL_SIZE * 0.25f;
-	mesh_definition_t* def;
+	t_mesh_definition* def;
 	int32 vb_size;
 	int32 count = 6;
 	int32 sub_division = 16;
@@ -189,8 +196,15 @@ void		display_generate_process_mesh(display_t* display)
 	display_generate_sphere(sub_division, &center, radius * 0.5f, vb + vb_size * 5, def, ib + ib_count * 5, vb_count * 5);
 
 	display->process_mesh = display_mesh_vn_create(vb, vb_count * count, ib, ib_count * count);
-	display->jump_mesh = display_mesh_vc_create(NULL, VM_MAX_PROCESSES * 6, NULL, 0);
-	display->jump_vertex_buffer = malloc(VM_MAX_PROCESSES * 6 * display_mesh_get_definiton(MESH_TYPE_VC)->stride);
+	int32 vertices_count;
+	display_generate_line_count(&vertices_count, NULL);
+	display->jump_mesh = display_mesh_vc_create(NULL, VM_MAX_PROCESSES * vertices_count, NULL, 0);
+	display->jump_vertex_buffer = malloc(VM_MAX_PROCESSES * vertices_count * display_mesh_get_definiton(MESH_TYPE_VC)->stride);
+
+	display_generate_rect_count(&vertices_count, NULL);
+	display->live_mesh = display_mesh_vtc_create(NULL, VM_MAX_PROCESSES * vertices_count, NULL, 0);
+	display->live_vertex_buffer = malloc(VM_MAX_PROCESSES * vertices_count * display_mesh_get_definiton(MESH_TYPE_VTC)->stride);
+
 	free(vb);
 	free(ib);
 }
@@ -286,6 +300,7 @@ display_t* display_initialize(int width, int height, int full_screen)
 	display->hex_texture = display_gl_load_texture("data/hex.png");
 	display->write_texture = display_gl_load_texture("data/write.png");
 	display->read_texture = display_gl_load_texture("data/read.png");
+	display->live_texture = display_gl_load_texture("data/live.png");
 
 	display_gl_load_shader(&display->memory_shader, "shaders/memory.vert", "shaders/memory.frag", location);
 	display->memory_uniform_projection_matrix = glGetUniformLocation(display->memory_shader.id, "uni_ProjectionMatrix");
@@ -337,7 +352,7 @@ display_t* display_initialize(int width, int height, int full_screen)
 	display->display_center_y = ((float)display->frame_buffer_height * 0.5f) * screen_memory_ratio;
 
 	display->frame_last_time = glfwGetTime();
-	display_generate_process_mesh(display);
+	display_generate_mesh(display);
 	display->texts = display_text_intialize();
 	glfwSetWindowUserPointer(display->window, (void*)display);
 	glfwSetScrollCallback(display->window, display_scroll_callback);
@@ -354,12 +369,17 @@ int	 display_should_exit(display_t* display)
 void display_destroy(display_t* display) {
 	display_mesh_destroy(display->process_mesh);
 	display_mesh_destroy(display->jump_mesh);
+	display_mesh_destroy(display->live_mesh);
 
 	display_mesh_renderer_destroy(display->mesh_renderer);
 	glDeleteBuffers(1, &display->memory_vertex_buffer);
 	glDeleteBuffers(1, &display->memory_grid_vertex_buffer);
 	glDeleteBuffers(1, &display->memory_grid_index_buffer);
 	glDeleteTextures(1, &display->hex_texture);
+	glDeleteTextures(1, &display->read_texture);
+	glDeleteTextures(1, &display->write_texture);
+	glDeleteTextures(1, &display->live_texture);
+
 	display_gl_destroy_shader(&display->memory_shader);
 	display_gl_destroy_shader(&display->io_shader);
 	glDeleteVertexArrays(1, &display->memory_vao);
@@ -369,6 +389,7 @@ void display_destroy(display_t* display) {
 	free(display->memory_read_buffer);
 	free(display->memory_write_buffer);
 	free(display->jump_vertex_buffer);
+	free(display->live_vertex_buffer);
 	glfwTerminate();
 }
 
@@ -414,43 +435,103 @@ void display_render_memory(struct vm_s* vm, display_t* display)
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-void display_update_jump(vm_t* vm, display_t* display) {
-	
+void display_update_live(vm_t* vm, display_t* display) {
+	int32		i;
+	uint8*	live_vertex_buffer = display->live_vertex_buffer;
+	t_mesh_definition* def = display_mesh_get_definiton(MESH_TYPE_VTC);
+
+	display->live_count = 0;
+	for (i = 0; i < vm->process_count; ++i)
+	{
+		process_t* process = vm->processes[i];
+
+		if (process->current_opcode && process->current_opcode->opcode == 0x0c) {
+			uint32 live_color = process->last_core_live->color_uint /*& 0xffffff*/;
+			v3_t	start, end;
+			float size = LERP(0.0f, DISPLAY_CELL_SIZE, (float)(process->current_opcode->cycles - process->cycle_wait) / (float)process->current_opcode->cycles);
+
+			//live_color |= 0x10000000;
+			display_get_position(process->pc, &start);
+			
+			end.x = start.x + size;
+			end.y = start.y + size;
+			end.z = start.z;
+			start.x -= size;
+			start.y -= size;
+
+			live_vertex_buffer = display_generate_rect(&start, &end, live_color, live_vertex_buffer, def);
+			display->live_count++;
+		}
+	}
 }
 
-void display_render_io(struct vm_s* vm, display_t* display)
-{
-	int			i, j, c;
+void display_render_live(display_t* display) {
+	v4_t	color_diffuse;
+	v4_t	color_ambient;
+	mat4_t	local;
+	v4_set(&color_diffuse, 1.f, 1.f, 1.0f, 1.0f);
+	v4_set(&color_ambient, 0.0f, 0.0f, 0.0f, 0.0f);
+	mat4_ident(&local);
+
+	if (display->live_count > 0) {
+		glDisable(GL_DEPTH_TEST);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+		glBindTexture(GL_TEXTURE_2D, display->live_texture);
+		glBindBuffer(GL_ARRAY_BUFFER, display_mesh_get_vb(display->live_mesh));
+		glBufferSubData(GL_ARRAY_BUFFER, 0, display->live_count * 24 * 6, display->live_vertex_buffer);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		display_mesh_render_start(display->mesh_renderer, MESH_TYPE_VTC);
+		display_mesh_set_ambient(display->mesh_renderer, &color_ambient);
+		display_mesh_set_diffuse(display->mesh_renderer, &color_diffuse);
+		display_mesh_set_local(display->mesh_renderer, &local);
+		display_mesh_set_projection(display->mesh_renderer, &display->projection_view);
+		display_mesh_render_count(display->live_mesh, display->live_count * 6);
+	}
+}
+
+void display_update_jump(vm_t* vm, display_t* display) {
+	int32		i;
+	uint8*	jump_vertex_buffer = display->jump_vertex_buffer;
+	t_mesh_definition* def = display_mesh_get_definiton(MESH_TYPE_VC);
+
+	display->jump_count = 0;
+	for (i = 0; i < vm->process_count; ++i) {
+		process_t* process = vm->processes[i];
+
+		if (process->current_opcode && process->current_opcode->opcode == 7) {
+			uint32 jump_color = process->core->color_uint & 0xffffff;
+			v3_t	start, end;
+			float size = LERP(0.0f, DISPLAY_CELL_SIZE, (float)(process->current_opcode->cycles - process->cycle_wait) / (float)process->current_opcode->cycles);
+
+			jump_color |= 0x10000000;
+			display_get_position(process->jump_from, &start);
+			display_get_position(process->jump_to, &end);
+			jump_vertex_buffer = display_generate_line(&start, &end, size, size * 0.5f, jump_color, jump_vertex_buffer, def);
+			display->jump_count++;
+		}
+
+	}
+}
+
+void display_render_io(vm_t* vm, display_t* display) {
+	int32		i, j, c;
 	uint8*  dst_write;
 	uint8*	dst_read;
-	int			size = vm->memory_size;
-	mesh_definition_t* def = display_mesh_get_definiton(MESH_TYPE_VC);
+	int32		size = vm->memory_size;
 
 	dst_write = (uint8*)display->memory_write_buffer;
 	dst_read = (uint8*)display->memory_read_buffer;
 
-
-	display->jump_count = 0;
-
-	uint8* jump_vertex_buffer = display->jump_vertex_buffer;
-
-	for (c = 1; c < vm->core_count; ++c)
-	{
+	for (c = 1; c < vm->core_count; ++c) {
 		core_t* core = vm->cores[c];
-		uint32 jump_color = core->color_uint & 0xffffff;
-		jump_color |= 0x10000000;
 
 		memset(dst_read, 0, display->memory_size * 4);
 		memset(dst_write, 0, display->memory_size * 4);
 
-
-		for (i = 0; i < vm->process_count; ++i)
-		{
+		for (i = 0; i < vm->process_count; ++i) {
 			process_t* process = vm->processes[i];
-			if (process->core == core)
-			{
-				for (j = 0; j < process->memory_read_op_count; ++j)
-				{
+			if (process->core == core) {
+				for (j = 0; j < process->memory_read_op_count; ++j) {
 					int index = process->memory_read_op[j] * 4;
 					dst_read[index + 0]++;
 					dst_read[index + 1]++;
@@ -458,23 +539,12 @@ void display_render_io(struct vm_s* vm, display_t* display)
 					dst_read[index + 3]++;
 				}
 
-				for (j = 0; j < process->memory_write_op_count; ++j)
-				{
+				for (j = 0; j < process->memory_write_op_count; ++j) {
 					int index = process->memory_write_op[j] * 4;
 					dst_write[index + 0]++;
 					dst_write[index + 1]++;
 					dst_write[index + 2]++;
 					dst_write[index + 3]++;
-				}
-
-				if (process->jump) {
-					v3_t start;
-					v3_t end;
-					float size = LERP(0.0f, DISPLAY_CELL_SIZE, (float) process->cycle_wait / (float) process->current_opcode->cycles);
-					display_get_position(process->jump_from, &start);
-					display_get_position(process->jump_to, &end);
-					jump_vertex_buffer = display_generate_line(&start, &end, size, size * 0.5f, jump_color, jump_vertex_buffer, def);
-					display->jump_count++;
 				}
 			}
 		}
@@ -703,8 +773,11 @@ void display_step(struct vm_s* vm, display_t* display)
 		display_text_render(display->texts, &projection);
 		display_text_clear(display->texts);
 	}
-
+	display_update_jump(vm, display);
 	display_render_jump(display);
+
+	display_update_live(vm, display);
+	display_render_live(display);
 	glfwSwapBuffers(display->window);
 	glfwPollEvents();
 
