@@ -1,7 +1,7 @@
 #ifndef __DISPLAY_GRID_H__
 #define __DISPLAY_GRID_H__
 
-#include "display_math.h"
+#include "core/display_math.h"
 
 struct display_s;
 

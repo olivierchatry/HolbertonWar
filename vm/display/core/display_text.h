@@ -1,6 +1,6 @@
 #ifndef DISPLAY_TEXT_H
 #define DISPLAY_TEXT_H
-
+#include <stdarg.h>
 
 struct display_text_s;
 typedef struct display_text_s display_text_t;

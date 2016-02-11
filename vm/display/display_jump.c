@@ -2,11 +2,11 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "display_def.h"
+#include "core/display_def.h"
+#include "core/display_mesh_generator.h"
+
 #include "display_memory.h"
 #include "display_grid.h"
-
-#include "display_mesh_generator.h"
 
 #include "../vm.h"
 

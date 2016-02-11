@@ -1,11 +1,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "display_def.h"
+#include "core/display_def.h"
+#include "core/display_mesh_generator.h"
+
 #include "display_memory.h"
 #include "display_grid.h"
 
-#include "display_mesh_generator.h"
 #include "../vm.h"
 
 void display_process_init(struct display_s* display) {

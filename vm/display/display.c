@@ -9,7 +9,8 @@
 #include "../vm.h"
 #include "../core.h"
 
-#include "display_def.h"
+#include "core/display_def.h"
+
 #include "display_grid.h"
 #include "display_memory.h"
 #include "display_io.h"

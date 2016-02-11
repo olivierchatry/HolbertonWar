@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "display_def.h"
+#include "core/display_def.h"
 #include "display_memory.h"
 #include "display_grid.h"
 #include "../vm.h"

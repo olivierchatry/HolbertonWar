@@ -2,11 +2,14 @@
 #define __DIPLAY_DEF_H__
 
 
-#include "display.h"
+
 #include "display_gl.h"
 #include "display_math.h"
 #include "display_mesh.h"
 #include "display_text.h"
+
+#define DISPLAY_CELL_SIZE				10.f
+#define DISPLAY_OK						1
 
 typedef struct display_s
 {

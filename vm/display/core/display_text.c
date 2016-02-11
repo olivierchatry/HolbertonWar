@@ -5,7 +5,7 @@
 #include <math.h>
 #include <stb_easy_font.h>
 
-#include "display.h"
+#include "display_def.h"
 #include "display_gl.h"
 #include "display_math.h"
 #include "display_text.h"

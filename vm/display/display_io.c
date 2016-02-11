@@ -2,9 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "display_def.h"
+#include "core/display_def.h"
+
 #include "display_io.h"
 #include "display_grid.h"
+
 #include "../vm.h"
 
 void display_io_init(struct display_s* display) {

@@ -3,8 +3,9 @@
 #include <string.h>
 #include "core.h"
 #include "vm.h"
+
 #include "display/display.h"
-#include "display/display_text.h"
+
 #include "../common/utils.h"
 #include "../common/memory_access.h"
 
@@ -103,13 +104,13 @@ void print_winning_core(vm_t* vm)
 int main(int ac, char** av) {
 	vm_t*				vm		= vm_initialize();
 	display_t*	display = NULL;
-	
+
 	memory_access_initialize(0);
 
 	if (load_cores(vm, ac, av) <= 0) {
 		return -1;
 	}
-	
+
 	int bound = VM_MEMORY_SIZE / (vm->core_count - 1);
 
 	for (int i = 0; i < vm->core_count; ++i) {
@@ -124,7 +125,7 @@ int main(int ac, char** av) {
 #if defined(_DEBUG)
 		vm->full_screen = 0;
 #endif
-	
+
 #ifdef RENDER_GL
 		display = display_initialize(1980, 1080, vm->full_screen);
 #endif
@@ -198,7 +199,7 @@ int main(int ac, char** av) {
 			display_step(vm, display);
 		}
 	#endif
-		
+
 	}
 
 #ifdef RENDER_NCURSES
