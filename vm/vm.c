@@ -6,6 +6,10 @@
 #include "../common/memory_access.h"
 
 
+float	g_unknow_color[] = {
+	1.0f, 0.0f, 0.0f, 1.0f
+};
+
 static void memory_callback(int add, int write, void* data) {
 	process_t* process = (process_t*) data;
 	if (write) {
@@ -36,6 +40,8 @@ vm_t* vm_initialize() {
 	// core[0] is "unknown" core, used when player "live" with a unknown id.
 	vm->cores[vm->core_count] = malloc(sizeof(core_t));
 	vm->cores[vm->core_count]->live_count = 0;
+	vm->cores[vm->core_count]->color = g_unknow_color;
+	vm->cores[vm->core_count]->color_uint = 0xff0000ff;
 	vm->cores[vm->core_count++]->header = NULL;
 
 	return vm;
@@ -179,7 +185,7 @@ int 				vm_check_opcode(vm_t* vm, process_t* process, int* args, int* regs, int 
 	if (process->current_opcode->opcode) {
 		int32 pc = process->pc + 1;
 		int8 encoding;
-		
+
 		pc = memory_bound(pc, &process->core->bound);
 		encoding = memory_read8(vm->memory, pc++, &process->core->bound, NULL);
 		pc = memory_bound(pc, &process->core->bound);

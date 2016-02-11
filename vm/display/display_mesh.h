@@ -2,6 +2,7 @@
 #define DISPLAY_MESH_H
 
 #include	"../../common/holberton-core.h"
+#include "display_math.h"
 
 #define MESH_TYPE_VN	0
 #define MESH_TYPE_V		1
@@ -20,6 +21,13 @@ struct s_mesh_definition
 
 struct s_display_mesh_renderer;
 struct s_mesh;
+struct v3_s;
+struct v4_s;
+struct mat4_s;
+
+typedef struct v3_s v3_t;
+typedef struct v4_s v4_t;
+typedef struct mat4_s mat4_t;
 
 typedef struct s_mesh t_mesh;
 typedef struct s_display_mesh_renderer t_display_mesh_renderer;

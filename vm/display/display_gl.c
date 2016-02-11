@@ -6,7 +6,7 @@
 
 #include "../../common/utils.h"
 
-void display_gl_log(int id, const char* desc, int is_shader)
+void display_gl_log(GLuint id, const char* desc, int is_shader)
 {
 	int log_length;
 	if (is_shader)
@@ -32,9 +32,9 @@ void display_gl_destroy_shader(shader_t* shader)
 	glDeleteProgram(shader->id);
 }
 
-int32 display_gl_compile_shader(char* name, char* src, int32 type)
+GLuint display_gl_compile_shader(char* name, const char* src, int32 type)
 {
-	int32 shader = glCreateShader(type);
+	GLuint shader = glCreateShader(type);
 	glShaderSource(shader, 1, &src, NULL);
 	glCompileShader(shader);
 	int32 compiled;
@@ -79,24 +79,25 @@ int32 display_gl_load_shader(shader_t* shader, char* vert_file, char* frag_file,
 
 	return DISPLAY_GL_OK;
 }
-int32 display_gl_create_buffer(int32 type, int32 size, int32 flags, void* data)
+
+GLuint display_gl_create_buffer(int32 type, int32 size, int32 flags, void* data)
 {
-	int32 id;
+	GLuint id;
 	glGenBuffers(1, &id);
 	glBindBuffer(type, id);
 	glBufferData(type, size, data, flags);
 	return id;
 }
-int32 display_gl_load_texture(char* file_name)
+GLuint display_gl_load_texture(char* file_name)
 {
 	int32 size;
 	int32 width, height, channels;
-	int32 id = -1;
+	GLuint id = -1;
 
-	char* data = file_to_memory(file_name, &size);
+	stbi_uc* data = (stbi_uc*) file_to_memory(file_name, &size);
 	if (data)
 	{
-		char* result = stbi_load_from_memory(data, size, &width, &height, &channels, 4);
+		stbi_uc* result = stbi_load_from_memory(data, size, &width, &height, &channels, 4);
 		if (result)
 		{
 			int32 internals;
@@ -130,9 +131,9 @@ int32 display_gl_load_texture(char* file_name)
 	return id;
 }
 
-int32 display_gl_create_vao()
+GLuint display_gl_create_vao()
 {
-	int32 id;
+	GLuint id;
 	glGenVertexArrays(1, &id);
 	return id;
 }

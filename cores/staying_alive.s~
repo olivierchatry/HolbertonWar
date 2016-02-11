@@ -5,7 +5,7 @@ xor r2, r2, r2		; set the default offset for the barrier
 
 :start
 sub r3, 1, r3			; make the barrier change a bit, more fun to watch, each new process will get a new value.
-ld  0xffff, r4 					; number of fork per process, make sure it is reset after each fork.
+ld  4 , r4 					; number of fork per process, make sure it is reset after each fork.
 
 add r2, 4, r2			; make the barrier move, each  new process will get a new value.
 sub r2, 128, r9		;

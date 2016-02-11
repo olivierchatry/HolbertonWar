@@ -5,4 +5,6 @@
 sti r1, :live, 2
 :live
 live 1
+:live2
+live 1
 jnz :live

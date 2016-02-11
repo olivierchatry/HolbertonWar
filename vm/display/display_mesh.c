@@ -32,9 +32,9 @@ typedef struct s_mesh_vtc
 
 typedef struct s_mesh
 {
-	int32	vao;
-	int32	vb;
-	int32	ib;
+	GLuint	vao;
+	GLuint	vb;
+	GLuint	ib;
 
 	int32	count;
 	int32	type;
@@ -115,7 +115,7 @@ t_display_mesh_renderer* display_mesh_renderer_initialize()
 	renderer->type[MESH_TYPE_VTC].uniform_diffuse = glGetUniformLocation(id, "uni_Diffuse");
 	renderer->type[MESH_TYPE_VTC].uniform_ambient = glGetUniformLocation(id, "uni_Ambient");
 	renderer->type[MESH_TYPE_VTC].uniform_local_matrix = glGetUniformLocation(id, "uni_LocalMatrix");
-	
+
 	GLuint sampler = glGetUniformLocation(id, "uni_Sampler");
 	GLint		samplerId = 1;
 	glUniform1iv(sampler, 1, &samplerId);
