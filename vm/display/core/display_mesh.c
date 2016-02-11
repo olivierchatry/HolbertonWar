@@ -70,14 +70,11 @@ static t_mesh_definition	s_definition_table[] =
 };
 
 
-t_mesh_definition* display_mesh_get_definiton(int type)
-{
+t_mesh_definition* display_mesh_get_definiton(int type) {
 	return &(s_definition_table[type]);
 }
 
-t_display_mesh_renderer* display_mesh_renderer_initialize()
-{
-
+t_display_mesh_renderer* display_mesh_renderer_initialize() {
 	location_t			location_vn[] = { { "in_Position", 0 }, { "in_Normal", 1 }, { NULL, 0 } };
 	location_t			location_v[] = { { "in_Position", 0 },{ NULL, 0 } };
 	location_t			location_vc[] = { { "in_Position", 0 },{ "in_Color", 1 },{ NULL, 0 } };
@@ -124,19 +121,15 @@ t_display_mesh_renderer* display_mesh_renderer_initialize()
 	return renderer;
 }
 
-void	display_mesh_renderer_destroy(t_display_mesh_renderer* renderer)
-{
+void	display_mesh_renderer_destroy(t_display_mesh_renderer* renderer) {
 	int i;
-	for (i = 0; i < MESH_TYPE_COUNT; ++i)
-	{
+	for (i = 0; i < MESH_TYPE_COUNT; ++i) {
 		display_gl_destroy_shader(&renderer->type[i].shader);
 	}
-
 	free(renderer);
 }
 
-t_mesh* display_mesh_vn_create(void* vertices, int32 vertex_count, uint16* indices, int32 index_count)
-{
+t_mesh* display_mesh_vn_create(void* vertices, int32 vertex_count, uint16* indices, int32 index_count) {
 	t_mesh* mesh = malloc(sizeof(t_mesh));
 	mesh->count = index_count;
 	mesh->type = MESH_TYPE_VN;
@@ -159,8 +152,7 @@ t_mesh* display_mesh_vn_create(void* vertices, int32 vertex_count, uint16* indic
 	return mesh;
 }
 
-t_mesh* display_mesh_vtc_create(void* vertices, int32 vertex_count, uint16* indices, int32 index_count)
-{
+t_mesh* display_mesh_vtc_create(void* vertices, int32 vertex_count, uint16* indices, int32 index_count) {
 	t_mesh* mesh = malloc(sizeof(t_mesh));
 	mesh->count = index_count;
 	mesh->type = MESH_TYPE_VTC;
@@ -186,8 +178,7 @@ t_mesh* display_mesh_vtc_create(void* vertices, int32 vertex_count, uint16* indi
 	return mesh;
 }
 
-t_mesh* display_mesh_vc_create(void* vertices, int32 vertex_count, uint16* indices, int32 index_count)
-{
+t_mesh* display_mesh_vc_create(void* vertices, int32 vertex_count, uint16* indices, int32 index_count) {
 	t_mesh* mesh = malloc(sizeof(t_mesh));
 	mesh->count = index_count;
 	mesh->type = MESH_TYPE_VC;
@@ -211,8 +202,7 @@ t_mesh* display_mesh_vc_create(void* vertices, int32 vertex_count, uint16* indic
 	return mesh;
 }
 
-t_mesh* display_mesh_v_create(void* vertices, int32 vertex_count, uint16* indices, int32 index_count)
-{
+t_mesh* display_mesh_v_create(void* vertices, int32 vertex_count, uint16* indices, int32 index_count) {
 	t_mesh* mesh = malloc(sizeof(t_mesh));
 	mesh->count = index_count;
 	mesh->type = MESH_TYPE_V;
@@ -233,8 +223,7 @@ t_mesh* display_mesh_v_create(void* vertices, int32 vertex_count, uint16* indice
 }
 
 
-void	display_mesh_destroy(t_mesh* mesh)
-{
+void	display_mesh_destroy(t_mesh* mesh) {
 	glDeleteBuffers(1, &mesh->ib);
 	glDeleteBuffers(1, &mesh->vb);
 	glDeleteVertexArrays(1, &mesh->vao);
@@ -242,14 +231,12 @@ void	display_mesh_destroy(t_mesh* mesh)
 }
 
 
-void display_mesh_render_start(t_display_mesh_renderer* renderer, int type)
-{
+void display_mesh_render_start(t_display_mesh_renderer* renderer, int type) {
 	renderer->current = &(renderer->type[type]);
 	glUseProgram(renderer->current->shader.id);
 }
 
-void display_mesh_render(t_mesh* mesh)
-{
+void display_mesh_render(t_mesh* mesh) {
 	glBindVertexArray(mesh->vao);
 
 	if (mesh->ib) {
@@ -279,42 +266,34 @@ void display_mesh_render_count(t_mesh* mesh, int32 count) {
 	}
 }
 
-void display_mesh_set_ambient(t_display_mesh_renderer* renderer, v4_t* color)
-{
+void display_mesh_set_ambient(t_display_mesh_renderer* renderer, v4_t* color) {
 	glUniform4fv(renderer->current->uniform_ambient, 1, (float*) color);
 }
 
-void display_mesh_set_diffuse(t_display_mesh_renderer* renderer, v4_t* color)
-{
+void display_mesh_set_diffuse(t_display_mesh_renderer* renderer, v4_t* color) {
 	glUniform4fv(renderer->current->uniform_diffuse, 1, (float*)color);
 }
 
-void display_mesh_set_projection(t_display_mesh_renderer* renderer, mat4_t* projection)
-{
+void display_mesh_set_projection(t_display_mesh_renderer* renderer, mat4_t* projection) {
 	glUniformMatrix4fv(renderer->current->uniform_projection_matrix, 1, GL_FALSE, projection->mat.v);
 }
 
-int32 display_mesh_get_ib(t_mesh* mesh)
-{
+int32 display_mesh_get_ib(t_mesh* mesh) {
 	return mesh->ib;
 }
 
-int32 display_mesh_get_vb(t_mesh* mesh)
-{
+int32 display_mesh_get_vb(t_mesh* mesh) {
 	return mesh->vb;
 }
 
-void display_mesh_set_normal(t_display_mesh_renderer* renderer, mat4_t* normal)
-{
+void display_mesh_set_normal(t_display_mesh_renderer* renderer, mat4_t* normal) {
 	glUniformMatrix4fv(renderer->current->uniform_normal_matrix, 1, GL_FALSE, normal->mat.v);
 }
 
-void display_mesh_set_local(t_display_mesh_renderer* renderer, mat4_t* local)
-{
+void display_mesh_set_local(t_display_mesh_renderer* renderer, mat4_t* local) {
 	glUniformMatrix4fv(renderer->current->uniform_local_matrix, 1, GL_FALSE, local->mat.v);
 }
 
-void display_mesh_set_light_direction(t_display_mesh_renderer* renderer, v3_t* direction)
-{
+void display_mesh_set_light_direction(t_display_mesh_renderer* renderer, v3_t* direction) {
 	glUniform3fv(renderer->current->uniform_light_direction, 1, (float*) direction);
 }

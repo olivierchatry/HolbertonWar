@@ -101,4 +101,6 @@ void display_io_destroy(struct display_s* display) {
 	glDeleteTextures(1, &display->read_texture);
 	glDeleteTextures(1, &display->write_texture);
 	display_gl_destroy_shader(&display->io_shader);
+	free(display->memory_read_buffer);
+	free(display->memory_write_buffer);
 }

@@ -76,7 +76,8 @@ int32 display_gl_load_shader(shader_t* shader, char* vert_file, char* frag_file,
 	glLinkProgram(shader->id);
 
 	display_gl_log(shader->id, "LINK", 0);
-
+	free(vert_code);
+	free(frag_code);
 	return DISPLAY_GL_OK;
 }
 

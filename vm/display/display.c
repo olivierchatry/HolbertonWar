@@ -147,6 +147,7 @@ void display_destroy(display_t* display) {
 	display_mesh_renderer_destroy(display->mesh_renderer);
 
 	glfwDestroyWindow(display->window);
+	free(display);
 	glfwTerminate();
 }
 

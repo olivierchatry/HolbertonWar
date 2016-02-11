@@ -44,6 +44,7 @@ int8*			core_get_code_ptr(core_t* core) {
 }
 
 void			core_destroy(core_t* core) {
+	free(core->header);
 	free(core);
 }
 

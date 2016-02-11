@@ -91,8 +91,13 @@ void			display_text_destroy(display_text_t* texts)
 	for (i = 0; i < count; ++i)
 		free(texts->texts[i].text);
 
+	display_mesh_destroy(texts->text_mesh);
+	display_mesh_renderer_destroy(texts->text_renderer);
+
 	free(texts->text_mesh_vb);
 	free(texts);
+
+
 }
 
 float stb_easy_font_height();

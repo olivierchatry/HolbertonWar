@@ -31,7 +31,7 @@ void display_jump_update(struct vm_s* vm, struct display_s* display) {
 				(process->current_opcode->opcode == 7 || process->current_opcode->opcode == 6) ) {
 			uint32 jump_color = process->core->color_uint & 0xffffff;
 			v3_t	start, end;
-			float size = LERP(0.0f, DISPLAY_CELL_SIZE, (float)(process->current_opcode->cycles - process->cycle_wait) / (float)process->current_opcode->cycles);
+			float size = LERP(0.0f, DISPLAY_CELL_SIZE, (float)(process->cycle_wait) / (float)process->current_opcode->cycles);
 
 			jump_color |= 0x10000000;
 			display_grid_get_position(display, process->jump_from, &start);
