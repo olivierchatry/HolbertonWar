@@ -99,8 +99,7 @@ float stb_easy_font_height();
 
 float	display_text_add_va(display_text_t* texts, float x, float y, int32 rgba, char* format, va_list args) {
 	char*	buffer = malloc(MAX_TEXT_LEN);
-	int32	size;
-	size = vsnprintf(buffer, MAX_TEXT_LEN, format, args);
+	vsnprintf(buffer, MAX_TEXT_LEN, format, args);
 	texts->texts[texts->text_count % MAX_TEXT].text = buffer;
 	texts->texts[texts->text_count % MAX_TEXT].rgba = rgba;
 	texts->texts[texts->text_count % MAX_TEXT].position.x = x;

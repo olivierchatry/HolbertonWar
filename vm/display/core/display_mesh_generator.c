@@ -152,7 +152,6 @@ void display_generate_sphere(int subDiv, v3_t* center, float sphere_radius, int8
 	}
 
 	uint16* tmp = ib;
-	i = 1;
 	for (i = 0; i < subDiv; ++i)
 	{
 		int32 j;

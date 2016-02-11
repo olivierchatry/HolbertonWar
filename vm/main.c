@@ -6,6 +6,14 @@
 
 #include "display/display.h"
 
+// #define RENDER_NCURSES
+#define RENDER_GL
+
+#ifdef RENDER_NCURSES
+	#include <ncurses.h>
+#endif
+
+
 #include "../common/utils.h"
 #include "../common/memory_access.h"
 
@@ -67,35 +75,25 @@ int load_cores(vm_t* vm, int ac, char** av) {
 	return current_core;
 }
 
-// #define RENDER_NCURSES
-#define RENDER_GL
 
-#ifdef RENDER_NCURSES
-	#include <ncurses.h>
-#endif
-
-void print_winning_core(vm_t* vm)
-{
+void print_winning_core(vm_t* vm) {
 	core_t*		winning = NULL;
 	int32			count = 0;
 	int32			i;
 
-	for (i = 1; i < vm->core_count; ++i)
-	{
-		if ((winning == NULL) || (vm->cores[i]->live_last_cycle > winning->live_last_cycle))
+	for (i = 1; i < vm->core_count; ++i) {
+		if ((winning == NULL) || (vm->cores[i]->live_last_cycle > winning->live_last_cycle)) {
 			winning = vm->cores[i];
+		}
 	}
 	// tie detection
-	for (i = 0; i < vm->core_count; ++i)
-	{
+	for (i = 0; i < vm->core_count; ++i) {
 		count += winning == vm->cores[i];
 	}
-	if (count > 1 || winning == vm->cores[0])
-	{
+	if (count > 1 || winning == NULL || winning == vm->cores[0]) {
 		printf("it's a tie !\n");
 	}
-	else
-	{
+	else {
 		printf("%s win \n", winning->header->name);
 	}
 }
