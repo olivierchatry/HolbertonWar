@@ -19,10 +19,10 @@ void display_io_init(struct display_s* display) {
 	int32 height = display->grid_height;
 	int32 size = width * height;
 
-	display->write_texture = display_gl_load_texture("data/write.png");
-	display->read_texture = display_gl_load_texture("data/read.png");
+	display->write_texture = display_gl_load_texture(TEXTURE("write.png"));
+	display->read_texture = display_gl_load_texture(TEXTURE("read.png"));
 
-	display_gl_load_shader(&display->io_shader, "shaders/io.vert", "shaders/io.frag", location);
+	display_gl_load_shader(&display->io_shader, SHADER("shaders/io.vert"), SHADER("io.frag"), location);
 	display->io_uniform_projection_matrix = glGetUniformLocation(display->io_shader.id, "uni_ProjectionMatrix");
 	display->io_uniform_color = glGetUniformLocation(display->io_shader.id, "uni_Color");
 	display->io_uniform_texture = glGetUniformLocation(display->io_shader.id, "uni_Texture");

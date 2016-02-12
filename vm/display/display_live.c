@@ -12,7 +12,7 @@
 void display_live_init(struct display_s* display) {
 	int32 vertices_count;
 
-	display->live_texture = display_gl_load_texture("data/live.png");
+	display->live_texture = display_gl_load_texture(TEXTURE("live.png"));
 
 	display_generate_rect_count(&vertices_count);
 	display->live_mesh = display_mesh_vtc_create(NULL, VM_MAX_PROCESSES * vertices_count, NULL, 0);

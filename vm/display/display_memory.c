@@ -17,9 +17,9 @@ void display_memory_init(struct display_s* display) {
 	int32 height = display->grid_height;
 	int32 size = width * height;
 
-	display->hex_texture = display_gl_load_texture("data/hex.png");
+	display->hex_texture = display_gl_load_texture(TEXTURE("hex.png"));
 
-	display_gl_load_shader(&display->memory_shader, "shaders/memory.vert", "shaders/memory.frag", location);
+	display_gl_load_shader(&display->memory_shader, SHADER("memory.vert"), SHADER("memory.frag"), location);
 	display->memory_uniform_projection_matrix = glGetUniformLocation(display->memory_shader.id, "uni_ProjectionMatrix");
 	display->memory_uniform_coord = glGetUniformLocation(display->memory_shader.id, "uni_Coord");
 	display->memory_uniform_color = glGetUniformLocation(display->memory_shader.id, "uni_Color");

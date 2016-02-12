@@ -100,7 +100,6 @@ void			display_text_destroy(display_text_t* texts)
 
 }
 
-float stb_easy_font_height();
 
 float	display_text_add_va(display_text_t* texts, float x, float y, int32 rgba, char* format, va_list args) {
 	char*	buffer = malloc(MAX_TEXT_LEN);
@@ -110,7 +109,7 @@ float	display_text_add_va(display_text_t* texts, float x, float y, int32 rgba, c
 	texts->texts[texts->text_count % MAX_TEXT].position.x = x;
 	texts->texts[texts->text_count % MAX_TEXT].position.y = y;
 	texts->text_count++;
-	return stb_easy_font_height() + y + 1;
+	return stb_easy_font_height(buffer) + y + 1;
 }
 
 float	display_text_add(display_text_t* texts, float x, float y, int32 rgba, char* format, ...)

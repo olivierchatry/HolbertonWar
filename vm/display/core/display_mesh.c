@@ -1,9 +1,7 @@
 #include <GL/glew.h>
 #include <stdlib.h>
 
-#include "display_math.h"
-#include "display_mesh.h"
-#include "display_gl.h"
+#include "display_def.h"
 
 typedef struct s_mesh_vn
 {
@@ -81,7 +79,7 @@ t_display_mesh_renderer* display_mesh_renderer_initialize() {
 	location_t			location_vtc[] = { { "in_Position", 0 },{ "in_UV", 1 }, { "in_Color", 2 },{ NULL, 0 } };
 
 	t_display_mesh_renderer* renderer = (t_display_mesh_renderer*)malloc(sizeof(t_display_mesh_renderer));
-	display_gl_load_shader(&renderer->type[MESH_TYPE_VN].shader, "shaders/mesh_vn.vert", "shaders/mesh_vn.frag", location_vn);
+	display_gl_load_shader(&renderer->type[MESH_TYPE_VN].shader, SHADER("mesh_vn.vert"), SHADER("mesh_vn.frag"), location_vn);
 	int32 id = renderer->type[MESH_TYPE_VN].shader.id;
 	renderer->type[MESH_TYPE_VN].uniform_projection_matrix = glGetUniformLocation(id, "uni_ProjectionMatrix");
 	renderer->type[MESH_TYPE_VN].uniform_light_direction = glGetUniformLocation(id, "uni_LightDirection");
@@ -90,7 +88,7 @@ t_display_mesh_renderer* display_mesh_renderer_initialize() {
 	renderer->type[MESH_TYPE_VN].uniform_local_matrix = glGetUniformLocation(id, "uni_LocalMatrix");
 	renderer->type[MESH_TYPE_VN].uniform_normal_matrix = glGetUniformLocation(id, "uni_NormalMatrix");
 
-	display_gl_load_shader(&renderer->type[MESH_TYPE_V].shader, "shaders/mesh_v.vert", "shaders/mesh_v.frag", location_v);
+	display_gl_load_shader(&renderer->type[MESH_TYPE_V].shader, SHADER("mesh_v.vert"), SHADER("mesh_v.frag"), location_v);
 	id = renderer->type[MESH_TYPE_V].shader.id;
 	renderer->type[MESH_TYPE_V].uniform_projection_matrix = glGetUniformLocation(id, "uni_ProjectionMatrix");
 	renderer->type[MESH_TYPE_V].uniform_light_direction = glGetUniformLocation(id, "uni_LightDirection");
@@ -98,7 +96,7 @@ t_display_mesh_renderer* display_mesh_renderer_initialize() {
 	renderer->type[MESH_TYPE_V].uniform_ambient = glGetUniformLocation(id, "uni_Ambient");
 	renderer->type[MESH_TYPE_V].uniform_local_matrix = glGetUniformLocation(id, "uni_LocalMatrix");
 
-	display_gl_load_shader(&renderer->type[MESH_TYPE_VC].shader, "shaders/mesh_vc.vert", "shaders/mesh_vc.frag", location_vc);
+	display_gl_load_shader(&renderer->type[MESH_TYPE_VC].shader, SHADER("mesh_vc.vert"), SHADER("mesh_vc.frag"), location_vc);
 	id = renderer->type[MESH_TYPE_VC].shader.id;
 	renderer->type[MESH_TYPE_VC].uniform_projection_matrix = glGetUniformLocation(id, "uni_ProjectionMatrix");
 	renderer->type[MESH_TYPE_VC].uniform_light_direction = glGetUniformLocation(id, "uni_LightDirection");
@@ -106,7 +104,7 @@ t_display_mesh_renderer* display_mesh_renderer_initialize() {
 	renderer->type[MESH_TYPE_VC].uniform_ambient = glGetUniformLocation(id, "uni_Ambient");
 	renderer->type[MESH_TYPE_VC].uniform_local_matrix = glGetUniformLocation(id, "uni_LocalMatrix");
 
-	display_gl_load_shader(&renderer->type[MESH_TYPE_VTC].shader, "shaders/mesh_vtc.vert", "shaders/mesh_vtc.frag", location_vtc);
+	display_gl_load_shader(&renderer->type[MESH_TYPE_VTC].shader, SHADER("mesh_vtc.vert"), SHADER("mesh_vtc.frag"), location_vtc);
 	id = renderer->type[MESH_TYPE_VTC].shader.id;
 	renderer->type[MESH_TYPE_VTC].uniform_projection_matrix = glGetUniformLocation(id, "uni_ProjectionMatrix");
 	renderer->type[MESH_TYPE_VTC].uniform_light_direction = glGetUniformLocation(id, "uni_LightDirection");

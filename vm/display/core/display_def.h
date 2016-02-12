@@ -3,10 +3,15 @@
 
 
 
+#define DATA_PATH ".\\data\\"
+#define SHADER(name) DATA_PATH ## "shaders\\" ## name
+#define TEXTURE(name) DATA_PATH ## "textures\\" ## name
+
 #include "display_gl.h"
 #include "display_math.h"
 #include "display_mesh.h"
 #include "display_text.h"
+
 
 #define DISPLAY_CELL_SIZE				10.f
 #define DISPLAY_OK						1
