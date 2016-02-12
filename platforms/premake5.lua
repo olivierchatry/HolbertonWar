@@ -1,10 +1,8 @@
 dofile "premake-utils.lua"
 
 os.mkdir("../build")
-os.copydir("../vm/shaders", "../build/shaders")
-os.copydir("../vm/data", "../build/data")
-filter "system:windows"
-	os.copyfile("../externals/glfw/3.1.2/lib/windows/x86_64/glfw3.dll", "../build/glfw3.dll")
+os.copydir("../vm/display/data", "../build/data")
+os.copyfile("../externals/glfw/3.1.2/lib/windows/x86_64/glfw3.dll", "../build/glfw3.dll")
 
 workspace "HolbertonWar"
 	location 		("../build")
@@ -16,7 +14,6 @@ workspace "HolbertonWar"
 		defines     { "_CRT_SECURE_NO_WARNINGS" }
 
   project "vm"
-    debugdir "../cores"
     kind "ConsoleApp"
     language "C"
 
@@ -25,18 +22,25 @@ workspace "HolbertonWar"
 			"../vm/**.h",
 			"../common/**.c",
 			"../common/**.h",
-			"../vm/shaders/*.frag",
-			"../vm/shaders/*.vert",
+			"../vm/display/data/shaders/*.frag",
+			"../vm/display/data/shaders/*.vert",
 			"../externals/glew/src/*.c",
 			"../externals/stb/*.h"
-			"../Externals/imgui/*.cpp",
-			"../Externals/imgui/*.h",
+		}
+		language "C++"
+		files {
+			"../display/debugger/**.cpp",
+			"../display/debugger/**.h",
+			"../externals/imgui/imgui.cpp",
+			"../externals/imgui/imgui_draw.cpp",
+			"../externals/imgui/*.h"
 		}
 
 		includedirs {
 			"../externals/glew/include",
 			"../externals/glm",
-			"../externals/stb"
+			"../externals/stb",
+			"../externals/imgui"
 		}
 
 		filter "system:linux"
