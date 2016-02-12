@@ -29,6 +29,8 @@ workspace "HolbertonWar"
 			"../vm/shaders/*.vert",
 			"../externals/glew/src/*.c",
 			"../externals/stb/*.h"
+			"../Externals/imgui/*.cpp",
+			"../Externals/imgui/*.h",
 		}
 
 		includedirs {
