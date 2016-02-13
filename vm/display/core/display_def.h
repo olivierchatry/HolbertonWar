@@ -4,8 +4,8 @@
 
 
 #define DATA_PATH ".\\data\\"
-#define SHADER(name) DATA_PATH ## "shaders\\" ## name
-#define TEXTURE(name) DATA_PATH ## "textures\\" ## name
+#define SHADER(name) DATA_PATH  "shaders\\"  name
+#define TEXTURE(name) DATA_PATH  "textures\\" name
 
 #include "display_gl.h"
 #include "display_math.h"
