@@ -26,7 +26,7 @@ uint32 ftouint(float* f) {
 
 int32 g_core_count = 0;
 
-int32 be_to_le_int32(int32 value) {
+int32 invert_int32(int32 value) {
 	int32 ret;
 	int8* ptr = (int8*)&ret;
 
@@ -60,11 +60,11 @@ core_t* 	core_load_from_file(const char* file_name) {
 
 	if (_read(fd, &magic, 4) == 4)
 	{
-		if (magic == CORE_FILE_MAGIC)
+		if (magic == CORE_FILE_MAGIC || magic == CORE_FILE_INVERT_MAGIC)
 		{
 			long size;
 			int8* data;
-
+			int32 inverted = (magic == CORE_FILE_INVERT_MAGIC);
 			_lseek(fd, 0, SEEK_SET);
 			size = _lseek(fd, 0, SEEK_END);
 
@@ -75,10 +75,16 @@ core_t* 	core_load_from_file(const char* file_name) {
 			core = malloc(sizeof(core_t));
 			memset(core, 0, sizeof(core_t));
 			core->header = (core_file_header_t*)data;
+			if (inverted) {
+				core->header->code_size = invert_int32(core->header->code_size);
+				core->header->magic = invert_int32(core->header->magic);
+				core->header->version = invert_int32(core->header->version);
+			}
 			core->id = 0;
 			core->live_count = 0;
 			core->color = g_colors[g_core_count++];
 			core->color_uint = ftouint(core->color);
+			core->is_big_endian = is_cpu_big_endian() || inverted;
 		}
 	}
 

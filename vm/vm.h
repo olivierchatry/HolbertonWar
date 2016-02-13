@@ -6,13 +6,15 @@
 
 #define TYPE(v, a) ((v >> (a * 2)) & 3)
 
-#define VM_ERROR_ENCODING	-1
-#define VM_ERROR_OPCODE		-2
-#define VM_ERROR_REGISTER	-3
+#define VM_ERROR_ENCODING		-1
+#define VM_ERROR_OPCODE			-2
+#define VM_ERROR_REGISTER		-3
+#define VM_ERROR_ENDIANESS	-4
 
-#define VM_OK			1
-#define VM_MAX_JUMP	512
+#define VM_OK							1
+#define VM_MAX_JUMP				512
 #define VM_PROCESS_MAX_IO 16
+
 typedef struct process_s
 {
 
@@ -44,6 +46,8 @@ typedef struct process_s
 
 	memory_callback_t memory_callback;
 
+	float					angle;
+
 } process_t;
 
 
@@ -74,6 +78,7 @@ typedef struct vm_s
 
 	int32					dump_to_cycle;
 	int32					full_screen;
+	int32					big_endian;
 } vm_t;
 
 

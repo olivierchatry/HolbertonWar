@@ -16,6 +16,9 @@
 #define DISPLAY_CELL_SIZE				10.f
 #define DISPLAY_OK						1
 
+#define DISPLAY_MAX_LIVE_PER_ADDRESS		8
+#define DISPLAY_MAX_PROCES_PER_ADDRESS	8
+
 typedef struct display_s
 {
 	GLFWwindow*	window;
@@ -34,8 +37,8 @@ typedef struct display_s
 	int32				grid_width;
 	int32				grid_height;
 
-	uint8*			memory_read_buffer;
-	uint8*			memory_write_buffer;
+	uint8*			io_read_buffer;
+	uint8*			io_write_buffer;
 
 	GLuint			memory_uniform_projection_matrix;
 	GLuint			memory_uniform_coord;
@@ -57,6 +60,7 @@ typedef struct display_s
 	int32			frame_buffer_width;
 	int32			frame_buffer_height;
 	float			frame_buffer_ratio;
+	float			screen_ratio;
 
 	double		mouse_prev_x;
 	double		mouse_prev_y;
@@ -68,14 +72,14 @@ typedef struct display_s
 	double		frame_last_time;
 	double		frame_delta;
 
-	t_mesh*										live_mesh;
+	mesh_t*										live_mesh;
 	uint32										live_count;
 	int8*											live_vertex_buffer;
 
-	t_display_mesh_renderer*	mesh_renderer;
-	t_mesh*										process_mesh;
+	display_mesh_renderer_t*	mesh_renderer;
+	mesh_t*										process_mesh;
 
-	t_mesh*										jump_mesh;
+	mesh_t*										jump_mesh;
 	int8*											jump_vertex_buffer;
 	uint32										jump_count;
 

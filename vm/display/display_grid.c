@@ -21,25 +21,25 @@ void display_grid_get_position(struct display_s* display, int addr, v3_t* v) {
 
 
 void display_grid_init(display_t* display, int memory_size) {
-	int32						width = (int32)roundf(sqrtf(VM_MEMORY_SIZE));
-	int32						height = width;
+	float						sqr_size = sqrtf(VM_MEMORY_SIZE);
+	int32						width = (int32)roundf(sqr_size * display->screen_ratio);
+	int32						height = (int32)roundf(sqr_size * 1.0f / display->screen_ratio);
 	int32						size = width * height;
 	int32						x, y;
 	t_grid_vertex*	vb;
 	t_grid_vertex*	temp_vb;
 	uint16*					ib;
 	uint16*					temp_ib;
-	int32						vb_size = (size + height) * 4 * sizeof(t_grid_vertex);
-	int32						ib_size = (size + height) * 6 * sizeof(int16);
+	int32						vb_size = (size) * 4 * sizeof(t_grid_vertex);
+	int32						ib_size = (size) * 6 * sizeof(int16);
 	int32						cell_index = 0;
 
-
 	display->grid_width = width;
-	display->grid_height = display->grid_width;
+	display->grid_height = height;
 
 	temp_vb = vb = malloc(vb_size);
 	temp_ib = ib = malloc(ib_size);
-	for (y = 0; y < height + 1; ++y)
+	for (y = 0; y < height; ++y)
 	{
 		float yc = DISPLAY_CELL_SIZE * y;
 		float yn = yc + DISPLAY_CELL_SIZE;

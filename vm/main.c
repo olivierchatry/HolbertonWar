@@ -26,7 +26,7 @@ struct s_core_load_informations {
 };
 
 
-int load_cores(vm_t* vm, int ac, char** av) {
+int parse_arguments(vm_t* vm, int ac, char** av) {
 	struct s_core_load_informations infos[VM_MAX_CORES];
 	int32	current_core = 0;
 	int32	i;
@@ -75,6 +75,22 @@ int load_cores(vm_t* vm, int ac, char** av) {
 	return current_core;
 }
 
+int	 check_core_endianess(vm_t* vm) {
+	if (vm->core_count > 1) {
+		int big_endian = vm->cores[1]->is_big_endian;
+		for (int i = 2; i < vm->core_count; ++i) {
+			if (big_endian != vm->cores[i]->is_big_endian) {
+				fprintf(stderr, "cores endianess mismatch, all cores should use same endianess.\n");
+				for (i = 1; i < vm->core_count; ++i) {
+					fprintf(stderr, "core '%s' is %s endian\n", vm->cores[i]->header->name, vm->cores[i]->is_big_endian ? "BIG" : "little");
+				}
+				return VM_ERROR_ENDIANESS;
+			}
+		}
+		vm->big_endian = big_endian;
+	}
+	return VM_OK;
+}
 
 void print_winning_core(vm_t* vm) {
 	core_t*		winning = NULL;
@@ -98,23 +114,25 @@ void print_winning_core(vm_t* vm) {
 	}
 }
 
-
 int main(int ac, char** av) {
 	vm_t*				vm		= vm_initialize();
 	display_t*	display = NULL;
-
-	memory_access_initialize(0);
-
-	if (load_cores(vm, ac, av) <= 0) {
+	int					bound;
+	
+	if (parse_arguments(vm, ac, av) <= 0) {
 		return -1;
 	}
-
-	int bound = VM_MEMORY_SIZE / (vm->core_count - 1);
-
+	if (check_core_endianess(vm) < 0) {
+		return -1;
+	}
+	
+	bound = VM_MEMORY_SIZE / (vm->core_count - 1);
 	for (int i = 0; i < vm->core_count; ++i) {
 		vm->cores[i]->bound.start = vm->cores[i]->start_address;
 		vm->cores[i]->bound.size = bound;
 	}
+
+	memory_access_initialize(is_cpu_big_endian() != vm->big_endian);
 
 	#ifdef RENDER_NCURSES
 		initscr();
@@ -180,6 +198,10 @@ int main(int ac, char** av) {
 
 	#ifdef RENDER_GL
 		if (display_update_input(display) || update_display)
+		{
+
+		}
+
 		{
 			memset(vm->shadow, 0, vm->memory_size);
 

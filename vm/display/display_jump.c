@@ -21,7 +21,7 @@ void display_jump_init(struct display_s* display) {
 void display_jump_update(struct vm_s* vm, struct display_s* display) {
 	int32		i;
 	int8*	jump_vertex_buffer = display->jump_vertex_buffer;
-	t_mesh_definition* def = display_mesh_get_definiton(MESH_TYPE_VC);
+	mesh_definition_t* def = display_mesh_get_definiton(MESH_TYPE_VC);
 
 	display->jump_count = 0;
 
@@ -48,7 +48,7 @@ void display_jump_render(struct vm_s* vm, struct display_s* display) {
 	v4_t	color_diffuse;
 	v4_t	color_ambient;
 	mat4_t	local;
-	t_mesh_definition* 	def = display_mesh_get_definiton(MESH_TYPE_VC);
+	mesh_definition_t* 	def = display_mesh_get_definiton(MESH_TYPE_VC);
 	int32 						 	vertices_count;
 
 

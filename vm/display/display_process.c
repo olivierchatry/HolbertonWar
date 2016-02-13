@@ -16,7 +16,7 @@ void display_process_init(struct display_s* display) {
 	uint16* 						ib;
 	v3_t 								center;
 	float 							radius = DISPLAY_CELL_SIZE * 0.25f;
-	t_mesh_definition* 	def;
+	mesh_definition_t* 	def;
 	int32 							vb_size;
 	int32 							count = 6;
 	int32 							sub_division = 16;
@@ -80,8 +80,8 @@ void display_process_render(struct vm_s* vm, struct display_s* display) {
 		process_t* process = vm->processes[i];
 		int index = process->pc;
 
-		if (vm->shadow[index] < 8) {
-			float angle = (float)process->cycle_create * ((float)display->frame_last_time / (float)vm->cycle_total);
+		if (vm->shadow[index] < DISPLAY_MAX_PROCES_PER_ADDRESS) {
+			process->angle += (float)display->frame_delta;
 			mat4_t normal;
 			float x = (float)(index % display->memory_stride);
 			float y = (float)(index / display->memory_stride);
@@ -94,7 +94,7 @@ void display_process_render(struct vm_s* vm, struct display_s* display) {
 			mat4_ident(&translate);
 			mat4_translate(&translate, x, y, DISPLAY_CELL_SIZE * 0.5f);
 
-			quat_from_euler(&quat, angle, angle, angle);
+			quat_from_euler(&quat, process->angle, process->angle, process->angle);
 			quat_to_mat4(&quat, &rotation);
 			mat4_invert(&rotation, &normal);
 			mat4_transpose(&normal, &normal);

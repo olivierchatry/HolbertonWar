@@ -71,7 +71,7 @@ void display_memory_update(struct vm_s* vm, display_t* display) {
 	int		size = vm->memory_size;
 
 
-	dst = (uint8*)display->memory_write_buffer;
+	dst = (uint8*)display->io_write_buffer;
 	memset(dst, 0, display->memory_size * 4);
 
 	while (size--)
@@ -85,7 +85,7 @@ void display_memory_update(struct vm_s* vm, display_t* display) {
 	}
 
 	glBindBuffer(GL_ARRAY_BUFFER, display->memory_vertex_buffer);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, display->memory_size * 4, display->memory_write_buffer);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, display->memory_size * 4, display->io_write_buffer);
 }
 
 void display_memory_render(struct vm_s* vm, display_t* display) {

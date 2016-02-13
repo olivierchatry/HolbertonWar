@@ -22,12 +22,18 @@ void display_io_init(struct display_s* display) {
 	display->write_texture = display_gl_load_texture(TEXTURE("write.png"));
 	display->read_texture = display_gl_load_texture(TEXTURE("read.png"));
 
-	display_gl_load_shader(&display->io_shader, SHADER("shaders/io.vert"), SHADER("io.frag"), location);
+	display_gl_load_shader(&display->io_shader, SHADER("io.vert"), SHADER("io.frag"), location);
 	display->io_uniform_projection_matrix = glGetUniformLocation(display->io_shader.id, "uni_ProjectionMatrix");
 	display->io_uniform_color = glGetUniformLocation(display->io_shader.id, "uni_Color");
 	display->io_uniform_texture = glGetUniformLocation(display->io_shader.id, "uni_Texture");
-	display->memory_read_buffer = (uint8*)malloc((size + height) * 4);
-	display->memory_write_buffer = (uint8*)malloc((size + height) * 4);
+	
+	glUseProgram(display->io_shader.id);
+	GLint		samplerId = 0;
+	glUniform1iv(display->io_uniform_texture, 1, &samplerId);
+	glUseProgram(0);
+
+	display->io_read_buffer = (uint8*)malloc((size + height) * 4);
+	display->io_write_buffer = (uint8*)malloc((size + height) * 4);
 }
 
 void display_io_update(struct vm_s* vm, struct display_s* display) {
@@ -39,8 +45,8 @@ void display_io_render(struct vm_s* vm, struct display_s* display) {
 	uint8*  dst_write;
 	uint8*	dst_read;
 
-	dst_write = (uint8*)display->memory_write_buffer;
-	dst_read = (uint8*)display->memory_read_buffer;
+	dst_write = (uint8*)display->io_write_buffer;
+	dst_read = (uint8*)display->io_read_buffer;
 
 	for (c = 1; c < vm->core_count; ++c) {
 		core_t* core = vm->cores[c];
@@ -71,7 +77,7 @@ void display_io_render(struct vm_s* vm, struct display_s* display) {
 
 
 		glBindBuffer(GL_ARRAY_BUFFER, display->memory_vertex_buffer);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, display->memory_size * 4, display->memory_read_buffer);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, display->memory_size * 4, display->io_read_buffer);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 		glBindTexture(GL_TEXTURE_2D, display->read_texture);
@@ -85,7 +91,7 @@ void display_io_render(struct vm_s* vm, struct display_s* display) {
 		glBindVertexArray(0);
 
 		glBindBuffer(GL_ARRAY_BUFFER, display->memory_vertex_buffer);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, display->memory_size * 4, display->memory_write_buffer);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, display->memory_size * 4, display->io_write_buffer);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 		glBindVertexArray(display->memory_vao);
@@ -101,6 +107,6 @@ void display_io_destroy(struct display_s* display) {
 	glDeleteTextures(1, &display->read_texture);
 	glDeleteTextures(1, &display->write_texture);
 	display_gl_destroy_shader(&display->io_shader);
-	free(display->memory_read_buffer);
-	free(display->memory_write_buffer);
+	free(display->io_read_buffer);
+	free(display->io_write_buffer);
 }

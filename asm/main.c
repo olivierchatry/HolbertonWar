@@ -204,7 +204,7 @@ void handle_forward_labels(generator_t* generator) {
 	generator->byte_code_offset = byte_code_offset;
 }
 
-int assemble(char* input_file_name) {
+int assemble(char* input_file_name, int big_endian) {
   FILE* 				input;
 	char					line[1024];
 	generator_t		generator = { 0 };
@@ -212,6 +212,7 @@ int assemble(char* input_file_name) {
 	input = fopen(input_file_name, "rt");
 	if (input) {
 		generator_allocate(&generator);
+		generator.write_big_endian = big_endian;
 		generator.byte_code_base = sizeof(core_file_header_t);
 		while (!feof(input) && generator.error == ASM_OK) {
 			char* output[10];
@@ -247,10 +248,19 @@ int assemble(char* input_file_name) {
 
 int main(int ac, char** av) {
 	int i;
+	int big_endian = 0;
 
-	for (i = 1; i < ac; i++) {
-		printf("assembling %s\n", av[i]);
-		assemble(av[i]);
+	for (i = 1; i < ac; ++i) {
+		if (av[i]) {
+			if (strcmp(av[i], "-be") == 0)
+				big_endian = 1;
+			else if (strcmp(av[i], "-le") == 0)
+				big_endian = 0;
+			else {
+				printf("assembling %s to %s endian\n", av[i], big_endian ? "big" : "little");
+				assemble(av[i], big_endian);
+			}
+		}
 	}
 	return ASM_OK;
 }

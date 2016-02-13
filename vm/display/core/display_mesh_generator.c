@@ -10,7 +10,7 @@ void display_generate_rect_count(int32* vertex_count)
 	*vertex_count = 6;
 }
 
-int8* display_generate_rect(v3_t* min, v3_t* max, uint32 color, int8* vb, t_mesh_definition* def)
+int8* display_generate_rect(v3_t* min, v3_t* max, uint32 color, int8* vb, mesh_definition_t* def)
 {
 	float  vs[] = {
 		min->x, min->y, min->z, 0.0f, 0.0f,
@@ -52,7 +52,7 @@ void display_generate_line_count(int32* vertex_count)
 }
 
 
-int8* display_generate_line(v3_t* min, v3_t* max, float size_start, float size_end, uint32 color, int8* vb, t_mesh_definition* def)
+int8* display_generate_line(v3_t* min, v3_t* max, float size_start, float size_end, uint32 color, int8* vb, mesh_definition_t* def)
 {
 	v3_t direction;
 	v3_t normal, normal_end;
@@ -122,7 +122,7 @@ void v3_polar(float phi, float theta, float radius, v3_t* out)
 	out->z = radius * cosf(phi);
 }
 
-void display_generate_sphere(int subDiv, v3_t* center, float sphere_radius, int8* vb, t_mesh_definition* def, uint16* ib, uint16 start)
+void display_generate_sphere(int subDiv, v3_t* center, float sphere_radius, int8* vb, mesh_definition_t* def, uint16* ib, uint16 start)
 {
 	int32 i = subDiv + 1;
 	float delta = DISPLAY_M_PI / (subDiv);

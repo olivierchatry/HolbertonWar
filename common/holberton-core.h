@@ -16,6 +16,7 @@ typedef uint8_t  	uint8;
 #define CORE_FILE_VERSION         1
 
 #define CORE_FILE_MAGIC						0xcacbcdce
+#define CORE_FILE_INVERT_MAGIC    0xcecdcbca
 
 typedef struct core_file_header_s {
 	int32 magic;

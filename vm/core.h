@@ -14,6 +14,7 @@ typedef struct core_s {
 	uint32							color_uint;
 	bound_t							bound;
 	int									start_address;
+	int									is_big_endian;
 } core_t;
 
 int8*			core_get_code_ptr(core_t* core);

@@ -64,6 +64,8 @@ display_t* display_initialize(int width, int height, int full_screen) {
 		return NULL;
 	}
 	display = (display_t*)malloc(sizeof(display_t));
+	memset(display, 0, sizeof(display_t));
+
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
 #ifdef __APPLE__
@@ -87,7 +89,7 @@ display_t* display_initialize(int width, int height, int full_screen) {
 #if defined(_DEBUG)
 	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, 1);
 #endif
-
+	display->screen_ratio = (float) mode->width / (float) mode->height;
 	if (full_screen) {
 		display->window = glfwCreateWindow(mode->width, mode->height, "HolbertonWar", monitor, NULL);
 	}
@@ -157,10 +159,10 @@ int32 display_update_input(display_t* display) {
 	double mouse_delta_x, mouse_delta_y;
 
 	double 	current_time = glfwGetTime();
-	double 	delta = display->frame_last_time - current_time;
+	double 	delta = current_time - display->frame_last_time;
 	float		display_zoom = display->display_zoom;
 
-	display->frame_delta = delta;
+	display->frame_delta += delta;
 
 	display->frame_last_time = current_time;
 
@@ -278,4 +280,5 @@ void display_step(struct vm_s* vm, display_t* display) {
 
 	glfwSwapBuffers(display->window);
 	glfwPollEvents();
+	display->frame_delta = 0;
 }

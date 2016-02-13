@@ -43,7 +43,6 @@ vm_t* vm_initialize() {
 	vm->cores[vm->core_count]->color = g_unknow_color;
 	vm->cores[vm->core_count]->color_uint = 0xff0000ff;
 	vm->cores[vm->core_count++]->header = NULL;
-
 	return vm;
 }
 

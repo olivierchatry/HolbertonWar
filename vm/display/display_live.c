@@ -22,19 +22,24 @@ void display_live_init(struct display_s* display) {
 void display_live_update(struct vm_s* vm, struct display_s* display) {
 	int32		i;
 	int8*	live_vertex_buffer = display->live_vertex_buffer;
-	t_mesh_definition* def = display_mesh_get_definiton(MESH_TYPE_VTC);
+	mesh_definition_t* def = display_mesh_get_definiton(MESH_TYPE_VTC);
+
+	memset(vm->shadow, 0, VM_MEMORY_SIZE);
 
 	display->live_count = 0;
 	for (i = 0; i < vm->process_count; ++i)
 	{
 		process_t* process = vm->processes[i];
-
-		if (process->current_opcode && process->current_opcode->opcode == 0x0c) {
+		int32 address = process->pc;
+		if ( (vm->shadow[address] < DISPLAY_MAX_LIVE_PER_ADDRESS) 
+			&& process->current_opcode 
+			&& (process->current_opcode->opcode == 0x0c)) {
 			uint32 live_color = process->last_core_live->color_uint & 0xffffff;
 			v3_t	start, end;
 			float size = LERP(0.0f, DISPLAY_CELL_SIZE * 2.0f, (float)(process->cycle_wait) / (float)process->current_opcode->cycles);
 
-			live_color |= 0x10000000;
+			vm->shadow[address]++;
+			live_color |= 0x60000000;
 			display_grid_get_position(display, process->pc, &start);
 
 			end.x = start.x + size;
@@ -54,7 +59,7 @@ void display_live_render(struct vm_s* vm, struct display_s* display) {
 	v4_t								color_diffuse;
 	v4_t								color_ambient;
 	mat4_t							local;
-	t_mesh_definition* 	def = display_mesh_get_definiton(MESH_TYPE_VTC);
+	mesh_definition_t* 	def = display_mesh_get_definiton(MESH_TYPE_VTC);
 	int32 						 	vertices_count;
 
 	v4_set(&color_diffuse, 1.f, 1.f, 1.0f, 1.0f);
