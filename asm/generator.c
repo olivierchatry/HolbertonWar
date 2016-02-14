@@ -18,12 +18,13 @@ void generator_destroy(generator_t* generator) {
 
 int8* generator_write32(generator_t* generator, int32 to_write) {
 	int32 offset = generator->byte_code_base + generator->byte_code_offset;
-	int8* current = generator->byte_code + offset;
+	int8* current;
 	int32_bytes_t e = {to_write};
 
 	if (generator->byte_code_max_size < offset + 4) {
 		generator_allocate(generator);
 	}
+	current = generator->byte_code + offset;
 	if (generator->write_big_endian != generator->is_cpu_big_endian) {
 		generator->byte_code[generator->byte_code_base + generator->byte_code_offset++] = e.c[3];
 		generator->byte_code[generator->byte_code_base + generator->byte_code_offset++] = e.c[2];
@@ -40,13 +41,13 @@ int8* generator_write32(generator_t* generator, int32 to_write) {
 
 int8* generator_write16(generator_t* generator, int16 to_write) {
 	int32 offset = generator->byte_code_base + generator->byte_code_offset;
-	int8* current = generator->byte_code + offset;
+	int8* current;
 	int16_bytes_t e = {to_write};
 
 	if (generator->byte_code_max_size < offset + 2) {
 		generator_allocate(generator);
 	}
-
+	current = generator->byte_code + offset;
 	if (generator->write_big_endian != generator->is_cpu_big_endian) {
 		generator->byte_code[generator->byte_code_base + generator->byte_code_offset++] = e.c[1];
 		generator->byte_code[generator->byte_code_base + generator->byte_code_offset++] = e.c[0];
@@ -59,10 +60,11 @@ int8* generator_write16(generator_t* generator, int16 to_write) {
 
 int8* generator_write8(generator_t* generator, int8 to_write) {
 	int32 offset = generator->byte_code_base + generator->byte_code_offset;
-	int8* current = generator->byte_code + offset;
+	int8* current;
 	if (generator->byte_code_max_size < offset + 1) {
 		generator_allocate(generator);
 	}
+	current = generator->byte_code + offset;
 	generator->byte_code[generator->byte_code_base + generator->byte_code_offset++] = to_write;
 	return current;
 }

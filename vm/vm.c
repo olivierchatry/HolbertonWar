@@ -228,28 +228,23 @@ void	vm_live(vm_t* vm, process_t* process, int32 id)
 	int32 i;
 
 	vm->live_count++;
-
-	if ((vm->live_count % VM_LIVE_COUNT) == 0)
-	{
+	if ((vm->live_count % VM_LIVE_COUNT) == 0) {
 		vm->cycle_to_die -= vm->cycle_delta;
 	}
 	process->last_core_live = vm->cores[0];
-	for (i = 1; i < vm->core_count; ++i)
-	{
-		if (vm->cores[i]->id == id)
-		{
+	for (i = 1; i < vm->core_count; ++i) {
+		if (vm->cores[i]->id == id) {
 			process->last_core_live = vm->cores[i];
 			break;
 		}
 	}
-
 	process->last_core_live->live_count++;
 	process->last_core_live->live_last_cycle = vm->cycle_total;
 }
 
 int 				vm_execute(vm_t* vm, process_t* process) {
 	int32				pc;
-	int32				args[4], regs[4];
+	int32				args[4] = {0,0,0,0}, regs[4]={0,0,0,0};
 	int32				addr;
 
 	pc = process->pc = process->next_pc;
