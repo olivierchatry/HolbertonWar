@@ -7,7 +7,7 @@
 #include "display_gl_io.h"
 #include "display_gl_grid.h"
 
-#include "../vm.h"
+#include "../../vm.h"
 
 void display_gl_io_init(struct display_gl_s* display) {
 	location_t			location[] = {

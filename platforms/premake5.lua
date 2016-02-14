@@ -1,7 +1,7 @@
 dofile "premake-utils.lua"
 
 os.mkdir("../build")
-os.copydir("../vm/display/data", "../build/data")
+os.copydir("../vm/display/gl/data", "../build/data")
 os.copyfile("../externals/glfw/3.1.2/lib/windows/x86_64/glfw3.dll", "../build/glfw3.dll")
 
 workspace "HolbertonWar"
@@ -29,8 +29,8 @@ workspace "HolbertonWar"
 		}
 		language "C++"
 		files {
-			"../display/debugger/**.cpp",
-			"../display/debugger/**.h",
+			"../debugger/**.cpp",
+			"../debugger/**.h",
 			"../externals/imgui/imgui.cpp",
 			"../externals/imgui/imgui_draw.cpp",
 			"../externals/imgui/*.h"

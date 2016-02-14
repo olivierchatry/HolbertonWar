@@ -6,8 +6,8 @@
 #include	"../../common/holberton-core.h"
 #include	"../../common/ring_buffer.h"
 
-#include "../vm.h"
-#include "../core.h"
+#include "../../vm.h"
+#include "../../core.h"
 
 #include "core/display_gl_def.h"
 

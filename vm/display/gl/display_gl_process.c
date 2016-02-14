@@ -7,7 +7,7 @@
 #include "display_gl_memory.h"
 #include "display_gl_grid.h"
 
-#include "../vm.h"
+#include "../../vm.h"
 
 void display_gl_process_init(struct display_gl_s* display) {
 	int32								vb_count;

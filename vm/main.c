@@ -4,7 +4,7 @@
 #include "core.h"
 #include "vm.h"
 
-#include "display/display_gl.h"
+#include "display/gl/display_gl.h"
 
 // #define RENDER_NCURSES
 #define RENDER_GL
