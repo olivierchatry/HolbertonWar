@@ -5,11 +5,10 @@
 #include <math.h>
 #include <stb_easy_font.h>
 
-#include "display_def.h"
-#include "display_gl.h"
-#include "display_math.h"
-#include "display_text.h"
-#include "display_mesh.h"
+#include "display_gl_def.h"
+#include "display_gl_math.h"
+#include "display_gl_text.h"
+#include "display_gl_mesh.h"
 
 #define MAX_TEXT		100
 #define MAX_TEXT_LEN	256
@@ -22,28 +21,28 @@ typedef struct s_text
 
 } t_text;
 
-typedef struct display_text_s
+typedef struct display_gl_text_s
 {
 	t_text						texts[MAX_TEXT];
 	int32						text_count;
 
-	display_mesh_renderer_t*	text_renderer;
+	display_gl_mesh_renderer_t*	text_renderer;
 	mesh_t*						text_mesh;
 	uint8*						text_mesh_vb;
 	uint32						text_mesh_vb_size;
-} display_text_t;
+} display_gl_text_t;
 
 
-display_text_t* display_text_intialize()
+display_gl_text_t* display_gl_text_intialize()
 {
-	display_text_t* text = malloc(sizeof(display_text_t));
+	display_gl_text_t* text = malloc(sizeof(display_gl_text_t));
 	uint16*			ib;
 	uint16*			temp;
 	int32			size;
 	int32			i, start;
 
 	text->text_count = 0;
-	text->text_renderer = display_mesh_renderer_initialize();
+	text->text_renderer = display_gl_mesh_renderer_initialize();
 
 	size = MAX_TEXT * MAX_TEXT_LEN * 6;
 	temp = ib = malloc(size * sizeof(uint16));
@@ -60,16 +59,16 @@ display_text_t* display_text_intialize()
 	}
 
 
-	mesh_definition_t* def = display_mesh_get_definiton(MESH_TYPE_VC);
+	mesh_definition_t* def = display_gl_mesh_get_definiton(MESH_TYPE_VC);
 	text->text_mesh_vb_size = MAX_TEXT * MAX_TEXT_LEN * 4 * def->stride;
-	text->text_mesh = display_mesh_vc_create(NULL, text->text_mesh_vb_size, ib, size);
+	text->text_mesh = display_gl_mesh_vc_create(NULL, text->text_mesh_vb_size, ib, size);
 	free(ib);
 
 	text->text_mesh_vb = malloc(text->text_mesh_vb_size);
 	return text;
 }
 
-void			display_text_clear(display_text_t* texts)
+void			display_gl_text_clear(display_gl_text_t* texts)
 {
 	int32 i;
 	for (i = 0; i < texts->text_count; ++i)
@@ -80,7 +79,7 @@ void			display_text_clear(display_text_t* texts)
 	texts->text_count = 0;
 }
 
-void			display_text_destroy(display_text_t* texts)
+void			display_gl_text_destroy(display_gl_text_t* texts)
 {
 	int32 i;
 	int32 count = MAX_TEXT;
@@ -91,8 +90,8 @@ void			display_text_destroy(display_text_t* texts)
 	for (i = 0; i < count; ++i)
 		free(texts->texts[i].text);
 
-	display_mesh_destroy(texts->text_mesh);
-	display_mesh_renderer_destroy(texts->text_renderer);
+	display_gl_mesh_destroy(texts->text_mesh);
+	display_gl_mesh_renderer_destroy(texts->text_renderer);
 
 	free(texts->text_mesh_vb);
 	free(texts);
@@ -101,7 +100,7 @@ void			display_text_destroy(display_text_t* texts)
 }
 
 
-float	display_text_add_va(display_text_t* texts, float x, float y, int32 rgba, char* format, va_list args) {
+float	display_gl_text_add_va(display_gl_text_t* texts, float x, float y, int32 rgba, char* format, va_list args) {
 	char*	buffer = malloc(MAX_TEXT_LEN);
 	vsnprintf(buffer, MAX_TEXT_LEN, format, args);
 	texts->texts[texts->text_count % MAX_TEXT].text = buffer;
@@ -112,19 +111,19 @@ float	display_text_add_va(display_text_t* texts, float x, float y, int32 rgba, c
 	return stb_easy_font_height(buffer) + y + 1;
 }
 
-float	display_text_add(display_text_t* texts, float x, float y, int32 rgba, char* format, ...)
+float	display_gl_text_add(display_gl_text_t* texts, float x, float y, int32 rgba, char* format, ...)
 {
 	va_list args;
 	float ret;
 
 	va_start(args, format);
-	ret = display_text_add_va(texts, x, y, rgba, format, args);
+	ret = display_gl_text_add_va(texts, x, y, rgba, format, args);
 	va_end(args);
 	return ret;
 }
 
 
-void			display_text_render(display_text_t* texts, mat4_t* projection_view)
+void			display_gl_text_render(display_gl_text_t* texts, mat4_t* projection_view)
 {
 	int32 i;
 	int32 vb_index = 0;
@@ -146,13 +145,13 @@ void			display_text_render(display_text_t* texts, mat4_t* projection_view)
 			texts->text_mesh_vb + vb_index,
 			texts->text_mesh_vb_size) * 64;
 	}
-	glBindBuffer(GL_ARRAY_BUFFER, display_mesh_get_vb(texts->text_mesh));
+	glBindBuffer(GL_ARRAY_BUFFER, display_gl_mesh_get_vb(texts->text_mesh));
 	glBufferSubData(GL_ARRAY_BUFFER, 0, vb_index, texts->text_mesh_vb);
 
-	display_mesh_render_start(texts->text_renderer, MESH_TYPE_VC);
-	display_mesh_set_ambient(texts->text_renderer, &color_ambient);
-	display_mesh_set_diffuse(texts->text_renderer, &color_diffuse);
-	display_mesh_set_projection(texts->text_renderer, projection_view);
-	display_mesh_set_local(texts->text_renderer, &local);
-	display_mesh_render_count(texts->text_mesh, (vb_index / 64) * 6);
+	display_gl_mesh_render_start(texts->text_renderer, MESH_TYPE_VC);
+	display_gl_mesh_set_ambient(texts->text_renderer, &color_ambient);
+	display_gl_mesh_set_diffuse(texts->text_renderer, &color_diffuse);
+	display_gl_mesh_set_projection(texts->text_renderer, projection_view);
+	display_gl_mesh_set_local(texts->text_renderer, &local);
+	display_gl_mesh_render_count(texts->text_mesh, (vb_index / 64) * 6);
 }

@@ -1,5 +1,5 @@
 #include <float.h>
-#include "display_math.h"
+#include "display_gl_math.h"
 
 
 void	quat_from_euler(quat_t* out, float yaw, float pitch, float roll)

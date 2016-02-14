@@ -4,7 +4,7 @@
 #include "core.h"
 #include "vm.h"
 
-#include "display/display.h"
+#include "display/display_gl.h"
 
 // #define RENDER_NCURSES
 #define RENDER_GL
@@ -116,16 +116,16 @@ void print_winning_core(vm_t* vm) {
 
 int main(int ac, char** av) {
 	vm_t*				vm		= vm_initialize();
-	display_t*	display = NULL;
+	display_gl_t*	display = NULL;
 	int					bound;
-	
+
 	if (parse_arguments(vm, ac, av) <= 0) {
 		return -1;
 	}
 	if (check_core_endianess(vm) < 0) {
 		return -1;
 	}
-	
+
 	bound = VM_MEMORY_SIZE / (vm->core_count - 1);
 	for (int i = 0; i < vm->core_count; ++i) {
 		vm->cores[i]->bound.start = vm->cores[i]->start_address;
@@ -143,10 +143,10 @@ int main(int ac, char** av) {
 #endif
 
 #ifdef RENDER_GL
-		display = display_initialize(1980, 1080, vm->full_screen);
+		display = display_gl_initialize(1980, 1080, vm->full_screen);
 #endif
 
-	while (vm->process_count && !display_should_exit(display)) {
+	while (vm->process_count && !display_gl_should_exit(display)) {
 		int32 i;
 		int update_display = 0;
 
@@ -197,7 +197,7 @@ int main(int ac, char** av) {
 		vm_clean_dead_process(vm);
 
 	#ifdef RENDER_GL
-		if (display_update_input(display) || update_display)
+		if (display_gl_update_input(display) || update_display)
 		{
 
 		}
@@ -206,17 +206,17 @@ int main(int ac, char** av) {
 			memset(vm->shadow, 0, vm->memory_size);
 
 			float y = 1;
-			y = display_text(display, 0, y, 0xffffffff, "cycle to die   %d", vm->cycle_to_die);
-			y = display_text(display, 0, y, 0xffffffff, "live count     %d ", vm->live_count);
-			y = display_text(display, 0, y, 0xffffffff, "process count  %d ", vm->process_count);
-			y = display_text(display, 0, y, 0xffffffff, "cycle          %d ", vm->cycle_total);
-			y = display_text(display, 0, y, 0xffffffff, "barrier        %d ", vm->cycle_barrier);
+			y = display_gl_text(display, 0, y, 0xffffffff, "cycle to die   %d", vm->cycle_to_die);
+			y = display_gl_text(display, 0, y, 0xffffffff, "live count     %d ", vm->live_count);
+			y = display_gl_text(display, 0, y, 0xffffffff, "process count  %d ", vm->process_count);
+			y = display_gl_text(display, 0, y, 0xffffffff, "cycle          %d ", vm->cycle_total);
+			y = display_gl_text(display, 0, y, 0xffffffff, "barrier        %d ", vm->cycle_barrier);
 			for (int i = 0; i < vm->core_count; ++i) {
 				core_t* core = vm->cores[i];
 				char* name = core->header ? core->header->name : "Unknow";
-				y = display_text(display, 0, y, 0xffffffff, "%s %d", name, core->live_count);
+				y = display_gl_text(display, 0, y, 0xffffffff, "%s %d", name, core->live_count);
 			}
-			display_step(vm, display);
+			display_gl_step(vm, display);
 		}
 	#endif
 
@@ -227,7 +227,7 @@ int main(int ac, char** av) {
 #endif
 	print_winning_core(vm);
 #ifdef RENDER_GL
-	display_destroy(display);
+	display_gl_destroy(display);
 #endif
 	vm_destroy(vm);
 }

@@ -1,6 +1,6 @@
 #include <stdlib.h>
 
-#include "core/display_def.h"
+#include "core/display_gl_def.h"
 
 
 typedef struct s_grid_vertex
@@ -9,7 +9,7 @@ typedef struct s_grid_vertex
 	float	i;
 }	t_grid_vertex;
 
-void display_grid_get_position(struct display_s* display, int addr, v3_t* v) {
+void display_gl_grid_get_position(struct display_gl_s* display, int addr, v3_t* v) {
 	int32 width = display->grid_width;
 	int32 x = addr % width;
 	int32 y = (addr - x) / width;
@@ -20,7 +20,7 @@ void display_grid_get_position(struct display_s* display, int addr, v3_t* v) {
 }
 
 
-void display_grid_init(display_t* display, int memory_size) {
+void display_gl_grid_init(display_gl_t* display, int memory_size) {
 	float						sqr_size = sqrtf(VM_MEMORY_SIZE);
 	int32						width = (int32)roundf(sqr_size * display->screen_ratio);
 	int32						height = (int32)roundf(sqr_size * 1.0f / display->screen_ratio);
@@ -69,7 +69,7 @@ void display_grid_init(display_t* display, int memory_size) {
 	free(temp_ib);
 }
 
-void display_grid_destroy(struct display_s* display) {
+void display_gl_grid_destroy(struct display_gl_s* display) {
 	glDeleteBuffers(1, &display->grid_vertex_buffer);
 	glDeleteBuffers(1, &display->grid_index_buffer);
 }

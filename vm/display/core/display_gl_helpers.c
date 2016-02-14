@@ -2,7 +2,7 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
-#include "display_gl.h"
+#include "display_gl_helpers.h"
 
 #include "../../common/utils.h"
 

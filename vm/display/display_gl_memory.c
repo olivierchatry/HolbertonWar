@@ -1,13 +1,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "core/display_def.h"
-#include "display_memory.h"
-#include "display_grid.h"
+#include "core/display_gl_def.h"
+#include "display_gl_memory.h"
+#include "display_gl_grid.h"
 #include "../vm.h"
 
 
-void display_memory_init(struct display_s* display) {
+void display_gl_memory_init(struct display_gl_s* display) {
 	location_t			location[] = {
 		{"in_Position", 0},
 		{"in_Value", 1},
@@ -58,14 +58,14 @@ void display_memory_init(struct display_s* display) {
 	glBindVertexArray(0);
 }
 
-void display_memory_destroy(struct display_s* display) {
+void display_gl_memory_destroy(struct display_gl_s* display) {
 	glDeleteBuffers(1, &display->memory_vertex_buffer);
 	glDeleteTextures(1, &display->hex_texture);
 	glDeleteVertexArrays(1, &display->memory_vao);
 	display_gl_destroy_shader(&display->memory_shader);
 }
 
-void display_memory_update(struct vm_s* vm, display_t* display) {
+void display_gl_memory_update(struct vm_s* vm, display_gl_t* display) {
 	uint8* dst;
 	uint8*	src = (uint8*)vm->memory;
 	int		size = vm->memory_size;
@@ -88,7 +88,7 @@ void display_memory_update(struct vm_s* vm, display_t* display) {
 	glBufferSubData(GL_ARRAY_BUFFER, 0, display->memory_size * 4, display->io_write_buffer);
 }
 
-void display_memory_render(struct vm_s* vm, display_t* display) {
+void display_gl_memory_render(struct vm_s* vm, display_gl_t* display) {
 	float color_mem[] = { 0.4f, 0.4f, 0.8f, 1.0f };
 
 	glUseProgram(display->memory_shader.id);

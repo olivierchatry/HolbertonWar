@@ -2,14 +2,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "core/display_def.h"
+#include "core/display_gl_def.h"
 
-#include "display_io.h"
-#include "display_grid.h"
+#include "display_gl_io.h"
+#include "display_gl_grid.h"
 
 #include "../vm.h"
 
-void display_io_init(struct display_s* display) {
+void display_gl_io_init(struct display_gl_s* display) {
 	location_t			location[] = {
 		{"in_Position", 0},
 		{"in_Value", 1},
@@ -36,11 +36,11 @@ void display_io_init(struct display_s* display) {
 	display->io_write_buffer = (uint8*)malloc((size + height) * 4);
 }
 
-void display_io_update(struct vm_s* vm, struct display_s* display) {
+void display_gl_io_update(struct vm_s* vm, struct display_gl_s* display) {
 
 }
 
-void display_io_render(struct vm_s* vm, struct display_s* display) {
+void display_gl_io_render(struct vm_s* vm, struct display_gl_s* display) {
 	int32		i, j, c;
 	uint8*  dst_write;
 	uint8*	dst_read;
@@ -103,7 +103,7 @@ void display_io_render(struct vm_s* vm, struct display_s* display) {
 	}
 }
 
-void display_io_destroy(struct display_s* display) {
+void display_gl_io_destroy(struct display_gl_s* display) {
 	glDeleteTextures(1, &display->read_texture);
 	glDeleteTextures(1, &display->write_texture);
 	display_gl_destroy_shader(&display->io_shader);

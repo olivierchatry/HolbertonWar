@@ -7,10 +7,10 @@
 #define SHADER(name) DATA_PATH  "shaders\\"  name
 #define TEXTURE(name) DATA_PATH  "textures\\" name
 
-#include "display_gl.h"
-#include "display_math.h"
-#include "display_mesh.h"
-#include "display_text.h"
+#include "display_gl_helpers.h"
+#include "display_gl_math.h"
+#include "display_gl_mesh.h"
+#include "display_gl_text.h"
 
 
 #define DISPLAY_CELL_SIZE				10.f
@@ -19,7 +19,7 @@
 #define DISPLAY_MAX_LIVE_PER_ADDRESS		8
 #define DISPLAY_MAX_PROCES_PER_ADDRESS	8
 
-typedef struct display_s
+typedef struct display_gl_s
 {
 	GLFWwindow*	window;
 
@@ -65,9 +65,9 @@ typedef struct display_s
 	double		mouse_prev_x;
 	double		mouse_prev_y;
 
-	float			display_zoom;
-	float			display_center_x;
-	float			display_center_y;
+	float			display_gl_zoom;
+	float			display_gl_center_x;
+	float			display_gl_center_y;
 
 	double		frame_last_time;
 	double		frame_delta;
@@ -76,7 +76,7 @@ typedef struct display_s
 	uint32										live_count;
 	int8*											live_vertex_buffer;
 
-	display_mesh_renderer_t*	mesh_renderer;
+	display_gl_mesh_renderer_t*	mesh_renderer;
 	mesh_t*										process_mesh;
 
 	mesh_t*										jump_mesh;
@@ -84,8 +84,8 @@ typedef struct display_s
 	uint32										jump_count;
 
 	mat4_t										projection_view;
-	display_text_t*						texts;
+	display_gl_text_t*						texts;
 
-} display_t;
+} display_gl_t;
 
 #endif

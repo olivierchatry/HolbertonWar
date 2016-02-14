@@ -9,37 +9,37 @@
 #include "../vm.h"
 #include "../core.h"
 
-#include "core/display_def.h"
+#include "core/display_gl_def.h"
 
-#include "display_grid.h"
-#include "display_memory.h"
-#include "display_io.h"
-#include "display_live.h"
-#include "display_jump.h"
-#include "display_process.h"
+#include "display_gl_grid.h"
+#include "display_gl_memory.h"
+#include "display_gl_io.h"
+#include "display_gl_live.h"
+#include "display_gl_jump.h"
+#include "display_gl_process.h"
 
 
-float	display_text(display_t* display, float x, float y, int32 rgba, char* format, ...) {
+float	display_gl_text(display_gl_t* display, float x, float y, int32 rgba, char* format, ...) {
 	va_list args;
 	float ret;
 
 	va_start(args, format);
-	ret = display_text_add_va(display->texts, x, y, rgba, format, args);
+	ret = display_gl_text_add_va(display->texts, x, y, rgba, format, args);
 	va_end(args);
 	return ret;
 }
 
-void display_scroll_callback(GLFWwindow* window, double dx, double dy) {
-	display_t* display = glfwGetWindowUserPointer(window);
-	float display_zoom = display->display_zoom - (float) dy / 10.0f;
+void display_gl_scroll_callback(GLFWwindow* window, double dx, double dy) {
+	display_gl_t* display = glfwGetWindowUserPointer(window);
+	float display_gl_zoom = display->display_gl_zoom - (float) dy / 10.0f;
 
-	if (display_zoom < 0.01f)
-		display_zoom = 0.01f;
-	float width = display->frame_buffer_width  * display->display_zoom;
-	float height = display->frame_buffer_height * display->display_zoom;
+	if (display_gl_zoom < 0.01f)
+		display_gl_zoom = 0.01f;
+	float width = display->frame_buffer_width  * display->display_gl_zoom;
+	float height = display->frame_buffer_height * display->display_gl_zoom;
 
-	float newWidth = display->frame_buffer_width  * display_zoom;
-	float newHeight = display->frame_buffer_height * display_zoom;
+	float newWidth = display->frame_buffer_width  * display_gl_zoom;
+	float newHeight = display->frame_buffer_height * display_gl_zoom;
 
 	double mouse_cur_x, mouse_cur_y;
 	glfwGetCursorPos(display->window, &mouse_cur_x, &mouse_cur_y);
@@ -51,20 +51,20 @@ void display_scroll_callback(GLFWwindow* window, double dx, double dy) {
 	float ty = (newHeight - height) * -y;
 
 
-	display->display_zoom = display_zoom;
+	display->display_gl_zoom = display_gl_zoom;
 
-	display->display_center_x += tx;
-	display->display_center_y += ty;
+	display->display_gl_center_x += tx;
+	display->display_gl_center_y += ty;
 }
 
-display_t* display_initialize(int width, int height, int full_screen) {
-	display_t*			display;
+display_gl_t* display_gl_initialize(int width, int height, int full_screen) {
+	display_gl_t*			display;
 
 	if (!glfwInit()) {
 		return NULL;
 	}
-	display = (display_t*)malloc(sizeof(display_t));
-	memset(display, 0, sizeof(display_t));
+	display = (display_gl_t*)malloc(sizeof(display_gl_t));
+	memset(display, 0, sizeof(display_gl_t));
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
@@ -101,16 +101,16 @@ display_t* display_initialize(int width, int height, int full_screen) {
 	glewExperimental = GL_TRUE;
 	glewInit();
 
-	display->mesh_renderer = display_mesh_renderer_initialize();
+	display->mesh_renderer = display_gl_mesh_renderer_initialize();
 
-	display_grid_init(display, VM_MEMORY_SIZE);
-	display_memory_init(display);
-	display_io_init(display);
-	display_live_init(display);
-	display_process_init(display);
-	display_jump_init(display);
+	display_gl_grid_init(display, VM_MEMORY_SIZE);
+	display_gl_memory_init(display);
+	display_gl_io_init(display);
+	display_gl_live_init(display);
+	display_gl_process_init(display);
+	display_gl_jump_init(display);
 
-	display->texts = display_text_intialize();
+	display->texts = display_gl_text_intialize();
 
 
 	glfwGetCursorPos(display->window, &display->mouse_prev_x, &display->mouse_prev_y);
@@ -121,46 +121,46 @@ display_t* display_initialize(int width, int height, int full_screen) {
 	if (screen_memory_ratio_height > screen_memory_ratio)
 		screen_memory_ratio = screen_memory_ratio_height;
 
-	display->display_zoom = screen_memory_ratio;
-	display->display_center_x = ((float)display->frame_buffer_width * 0.5f) * screen_memory_ratio;
-	display->display_center_y = ((float)display->frame_buffer_height * 0.5f) * screen_memory_ratio;
+	display->display_gl_zoom = screen_memory_ratio;
+	display->display_gl_center_x = ((float)display->frame_buffer_width * 0.5f) * screen_memory_ratio;
+	display->display_gl_center_y = ((float)display->frame_buffer_height * 0.5f) * screen_memory_ratio;
 
 	display->frame_last_time = glfwGetTime();
 	glfwSetWindowUserPointer(display->window, (void*)display);
-	glfwSetScrollCallback(display->window, display_scroll_callback);
-	// glfwSetCursorPosCallback(display->window, display_mouse_move_callback);
+	glfwSetScrollCallback(display->window, display_gl_scroll_callback);
+	// glfwSetCursorPosCallback(display->window, display_gl_mouse_move_callback);
 	glfwSwapInterval(0);
 	return display;
 }
 
-int	 display_should_exit(display_t* display) {
+int	 display_gl_should_exit(display_gl_t* display) {
 	return display && glfwWindowShouldClose(display->window);
 }
 
-void display_destroy(display_t* display) {
-	display_memory_destroy(display);
-	display_io_destroy(display);
-	display_live_destroy(display);
-	display_jump_destroy(display);
-	display_process_destroy(display);
-	display_grid_destroy(display);
-	display_text_destroy(display->texts);
+void display_gl_destroy(display_gl_t* display) {
+	display_gl_memory_destroy(display);
+	display_gl_io_destroy(display);
+	display_gl_live_destroy(display);
+	display_gl_jump_destroy(display);
+	display_gl_process_destroy(display);
+	display_gl_grid_destroy(display);
+	display_gl_text_destroy(display->texts);
 
-	display_mesh_renderer_destroy(display->mesh_renderer);
+	display_gl_mesh_renderer_destroy(display->mesh_renderer);
 
 	glfwDestroyWindow(display->window);
 	free(display);
 	glfwTerminate();
 }
 
-int32 display_update_input(display_t* display) {
+int32 display_gl_update_input(display_gl_t* display) {
 	int32 moved = 0;
 	double mouse_cur_x, mouse_cur_y;
 	double mouse_delta_x, mouse_delta_y;
 
 	double 	current_time = glfwGetTime();
 	double 	delta = current_time - display->frame_last_time;
-	float		display_zoom = display->display_zoom;
+	float		display_gl_zoom = display->display_gl_zoom;
 
 	display->frame_delta += delta;
 
@@ -176,11 +176,11 @@ int32 display_update_input(display_t* display) {
 
 
 	if (glfwGetKey(display->window, GLFW_KEY_Q) == GLFW_PRESS) {
-		display_zoom += (float)delta, moved = 1;
+		display_gl_zoom += (float)delta, moved = 1;
 	}
 
 	if (glfwGetKey(display->window, GLFW_KEY_A) == GLFW_PRESS) {
-		display_zoom -= (float)delta, moved = 1;
+		display_gl_zoom -= (float)delta, moved = 1;
 	}
 
 	if (glfwGetKey(display->window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
@@ -188,17 +188,17 @@ int32 display_update_input(display_t* display) {
 	}
 
 
-	if (display_zoom < 0.01f) {
-		display_zoom = 0.01f;
+	if (display_gl_zoom < 0.01f) {
+		display_gl_zoom = 0.01f;
 	}
 
 	if (moved) {
 
-		float width   = display->frame_buffer_width  * display->display_zoom;
-		float height  = display->frame_buffer_height * display->display_zoom;
+		float width   = display->frame_buffer_width  * display->display_gl_zoom;
+		float height  = display->frame_buffer_height * display->display_gl_zoom;
 
-		float newWidth = display->frame_buffer_width  * display_zoom;
-		float newHeight = display->frame_buffer_height * display_zoom;
+		float newWidth = display->frame_buffer_width  * display_gl_zoom;
+		float newHeight = display->frame_buffer_height * display_gl_zoom;
 
 
 		float x = ((float)mouse_cur_x / display->frame_buffer_width) - 0.5f;
@@ -208,25 +208,25 @@ int32 display_update_input(display_t* display) {
 		float ty = (newHeight - height) * -y;
 
 
-		display->display_zoom = display_zoom;
+		display->display_gl_zoom = display_gl_zoom;
 
 
-		display->display_center_x += tx;
-		display->display_center_y += ty;
+		display->display_gl_center_x += tx;
+		display->display_gl_center_y += ty;
 	}
 
 
 	if (glfwGetMouseButton(display->window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS) {
-		display->display_center_x += (float)mouse_delta_x * display->display_zoom;
-		display->display_center_y += (float)mouse_delta_y * display->display_zoom;
+		display->display_gl_center_x += (float)mouse_delta_x * display->display_gl_zoom;
+		display->display_gl_center_y += (float)mouse_delta_y * display->display_gl_zoom;
 		moved = 1;
 	}
 	return moved;
 }
 
-void display_camera_update(display_t* display) {
-	float width = display->frame_buffer_width  * display->display_zoom * 0.5f;
-	float height = display->frame_buffer_height * display->display_zoom * 0.5f;
+void display_gl_camera_update(display_gl_t* display) {
+	float width = display->frame_buffer_width  * display->display_gl_zoom * 0.5f;
+	float height = display->frame_buffer_height * display->display_gl_zoom * 0.5f;
 
 	glfwGetFramebufferSize(display->window, &display->frame_buffer_width, &display->frame_buffer_height);
 	display->frame_buffer_ratio =
@@ -236,23 +236,23 @@ void display_camera_update(display_t* display) {
 	mat4_ident(&display->projection_view);
 
 	mat4_ortho(&display->projection_view,
-		display->display_center_x - width,
-		display->display_center_x + width,
-		display->display_center_y + height,
-		display->display_center_y - height,
+		display->display_gl_center_x - width,
+		display->display_gl_center_x + width,
+		display->display_gl_center_y + height,
+		display->display_gl_center_y - height,
 		-1000.0f, 1000.0f);
 }
 
-void display_texts(struct vm_s* vm, display_t* display) {
+void display_gl_texts(struct vm_s* vm, display_gl_t* display) {
 	mat4_t projection;
 	mat4_ident(&projection);
 	mat4_ortho(&projection, 0, display->frame_buffer_width * 0.5f, display->frame_buffer_height * 0.5f, 0, -1000, 1000);
-	display_text_render(display->texts, &projection);
-	display_text_clear(display->texts);
+	display_gl_text_render(display->texts, &projection);
+	display_gl_text_clear(display->texts);
 }
 
-void display_step(struct vm_s* vm, display_t* display) {
-	display_camera_update(display);
+void display_gl_step(struct vm_s* vm, display_gl_t* display) {
+	display_gl_camera_update(display);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_BLEND);
@@ -260,23 +260,23 @@ void display_step(struct vm_s* vm, display_t* display) {
 	glDepthMask(GL_TRUE);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	display_memory_update(vm, display);
-	display_memory_render(vm, display);
+	display_gl_memory_update(vm, display);
+	display_gl_memory_render(vm, display);
 
-	display_io_update(vm, display);
-	display_io_render(vm, display);
+	display_gl_io_update(vm, display);
+	display_gl_io_render(vm, display);
 
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_BLEND);
-	display_process_render(vm, display);
+	display_gl_process_render(vm, display);
 
 	glEnable(GL_BLEND);
-	display_texts(vm, display);
-	display_jump_update(vm, display);
-	display_jump_render(vm, display);
+	display_gl_texts(vm, display);
+	display_gl_jump_update(vm, display);
+	display_gl_jump_render(vm, display);
 
-	display_live_update(vm, display);
-	display_live_render(vm, display);
+	display_gl_live_update(vm, display);
+	display_gl_live_render(vm, display);
 
 	glfwSwapBuffers(display->window);
 	glfwPollEvents();
