@@ -199,10 +199,6 @@ int main(int ac, char** av) {
 	#ifdef RENDER_GL
 		if (display_gl_update_input(display) || update_display)
 		{
-
-		}
-
-		{
 			memset(vm->shadow, 0, vm->memory_size);
 
 			float y = 1;

@@ -2,10 +2,15 @@
 #define __DIPLAY_DEF_H__
 
 
+#ifdef WIN32
+#define PATH_SEP "\\"
+#else
+#define PATH_SEP "/"
+#endif
+#define DATA_PATH "data" PATH_SEP
 
-#define DATA_PATH ".\\data\\"
-#define SHADER(name) DATA_PATH  "shaders\\"  name
-#define TEXTURE(name) DATA_PATH  "textures\\" name
+#define SHADER(name) DATA_PATH  "shaders" PATH_SEP name
+#define TEXTURE(name) DATA_PATH  "textures" PATH_SEP name
 
 #include "display_gl_helpers.h"
 #include "display_gl_math.h"
