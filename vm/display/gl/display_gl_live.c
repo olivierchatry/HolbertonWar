@@ -36,8 +36,8 @@ void display_gl_live_update(struct vm_s* vm, struct display_gl_s* display) {
 			&& (process->current_opcode->opcode == 0x0c)) {
 			uint32 live_color = process->last_core_live->color_uint & 0xffffff;
 			v3_t	start, end;
-			float size = LERP(0.0f, DISPLAY_CELL_SIZE * 2.0f, (float)(process->cycle_wait) / (float)process->current_opcode->cycles);
-
+			// float size = LERP(0.0f, DISPLAY_CELL_SIZE * 2.0f, (float)(process->cycle_wait) / (float)process->current_opcode->cycles);
+			float size = DISPLAY_CELL_SIZE;
 			vm->shadow[address]++;
 			live_color |= 0x60000000;
 			display_gl_grid_get_position(display, process->pc, &start);

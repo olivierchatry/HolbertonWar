@@ -145,6 +145,7 @@ void			display_gl_text_render(display_gl_text_t* texts, mat4_t* projection_view)
 			texts->text_mesh_vb + vb_index,
 			texts->text_mesh_vb_size) * 64;
 	}
+	glDisable(GL_DEPTH_TEST);
 	glBindBuffer(GL_ARRAY_BUFFER, display_gl_mesh_get_vb(texts->text_mesh));
 	glBufferSubData(GL_ARRAY_BUFFER, 0, vb_index, texts->text_mesh_vb);
 

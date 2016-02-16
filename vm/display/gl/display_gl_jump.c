@@ -13,7 +13,7 @@
 
 void display_gl_jump_init(struct display_gl_s* display) {
 	int32 vertices_count;
-	display_gl_generate_line_count(&vertices_count);
+	display_gl_generate_arrow_count(&vertices_count);
 	display->jump_mesh = display_gl_mesh_vc_create(NULL, VM_MAX_PROCESSES * vertices_count, NULL, 0);
 	display->jump_vertex_buffer = malloc(VM_MAX_PROCESSES * vertices_count * display_gl_mesh_get_definiton(MESH_TYPE_VC)->stride);
 }
@@ -31,12 +31,12 @@ void display_gl_jump_update(struct vm_s* vm, struct display_gl_s* display) {
 				(process->current_opcode->opcode == 7 || process->current_opcode->opcode == 6) ) {
 			uint32 jump_color = process->core->color_uint & 0xffffff;
 			v3_t	start, end;
-			float size = LERP(0.0f, DISPLAY_CELL_SIZE, (float)(process->cycle_wait) / (float)process->current_opcode->cycles);
-
+			// float size = LERP(0.0f, DISPLAY_CELL_SIZE, (float)(process->cycle_wait) / (float)process->current_opcode->cycles);
+			float size = DISPLAY_CELL_SIZE;
 			jump_color |= 0x10000000;
 			display_gl_grid_get_position(display, process->jump_from, &start);
 			display_gl_grid_get_position(display, process->jump_to, &end);
-			jump_vertex_buffer = display_gl_generate_line(&start, &end, size, size * 0.5f, jump_color, jump_vertex_buffer, def);
+			jump_vertex_buffer = display_gl_generate_arrow(&start, &end, size, jump_color, jump_vertex_buffer, def);
 			display->jump_count++;
 		}
 

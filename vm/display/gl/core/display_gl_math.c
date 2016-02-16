@@ -199,6 +199,11 @@ void mat4_x_v3(mat4_t* mat, v3_t* src, v3_t* dst)
 	dst->z = z;
 }
 
+float v3_len(v3_t* v) {
+	return sqrtf(v->x * v->x + v->y * v->y + v->z * v->z);
+}
+
+
 
 v2_t*	v2_set(v2_t* v, float x, float y)
 {
@@ -247,9 +252,9 @@ v3_t* v3_sub(v3_t* a, v3_t* b, v3_t* out)
 	return out;
 }
 
-v3_t*	v3_norm(v3_t* vin, v3_t* vout)
+float	v3_norm(v3_t* vin, v3_t* vout)
 {
-	float v = sqrtf(vin->x * vin->x + vin->y * vin->y + vin->z * vin->z);
+	float v = v3_len(vin);
 	float d = 1.0f;
 	if (v > FLT_EPSILON)
 		d = v;
@@ -258,7 +263,7 @@ v3_t*	v3_norm(v3_t* vin, v3_t* vout)
 	vout->y = vin->y / d;
 	vout->z = vin->z / d;
 
-	return vout;
+	return d;
 }
 
 v3_t*	v3_add(v3_t* vin, v3_t* add, v3_t* vout)

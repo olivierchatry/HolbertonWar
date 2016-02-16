@@ -58,9 +58,10 @@ mat4_t*	mat4_mul(mat4_t* mat, mat4_t* with, mat4_t* out);
 
 v3_t*	v3_set(v3_t* v, float x, float y, float z);
 v3_t* v3_sub(v3_t* a, v3_t* b, v3_t* out);
-v3_t*	v3_norm(v3_t* vin, v3_t* vout);
+float	v3_norm(v3_t* vin, v3_t* vout);
 v3_t*	v3_add(v3_t* vin, v3_t* add, v3_t* vout);
 v3_t* v3_cross(v3_t* a, v3_t* b, v3_t* out);
+float v3_len(v3_t* v);
 
 v2_t*	v2_set(v2_t* v, float x, float y);
 v2_t*	v2_add(v2_t* vin, v2_t* add, v2_t* vout);

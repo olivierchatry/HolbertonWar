@@ -167,3 +167,63 @@ void display_gl_generate_sphere(int subDiv, v3_t* center, float sphere_radius, i
 		}
 	}
 }
+
+void display_gl_generate_arrow_count(int32* vertex_count)
+{
+	*vertex_count = 6;
+}
+
+
+int8* display_gl_generate_arrow(v3_t* min, v3_t* max, float size, uint32 color, int8* vb, mesh_definition_t* def)
+{
+	v3_t direction;
+	v3_t normal;
+	v3_t middle;
+	float middle_pos = 0.9f;
+
+	v3_set(&normal, 0, 0, 1);
+	v3_sub(max, min, &direction);
+	v3_set(&middle, direction.x * middle_pos, direction.y * middle_pos, direction.z * middle_pos);
+	v3_add(&middle, min, &middle);
+
+	v3_norm(&direction, &direction);
+	v3_cross(&direction, &normal, &normal);
+	v3_norm(&normal, &normal);
+
+	size *= 0.5f;
+
+	normal.x *= size;
+	normal.y *= size;
+	normal.z *= size;
+
+
+	float  vs[] = {
+		min->x - normal.x, min->y - normal.y, min->z, 0.0f, 0.0f,
+		middle.x, middle.y, middle.z, 0.0, middle_pos,
+		min->x + normal.x, min->y + normal.y, min->z, 1.0f, 0.0f,
+		middle.x - normal.x, middle.y - normal.y, middle.z, 0.0f, middle_pos,
+		max->x, max->y, max->z, 0.0f, 1.0f,
+		middle.x + normal.x, middle.y + normal.y, middle.z, 1.0f, middle_pos
+	};
+
+	int32 i;
+
+	for (i = 0; i < 6; ++i)
+	{
+		v3_t* v = (v3_t*)(vb + def->vertex_offset);
+		float* vsp = vs + i * 5;
+		v3_set(v, *vsp, *(vsp + 1), *(vsp + 2));
+
+		if (def->uv_offset != -1) {
+			v2_t* uv = (v2_t*)(vb + def->uv_offset);
+			v2_set(uv, *(vsp + 3), *(vsp + 4));
+		}
+
+		if (def->color_offset != -1) {
+			uint32* c = (uint32*)(vb + def->color_offset);
+			*c = color;
+		}
+		vb += def->stride;
+	}
+	return vb;
+}
