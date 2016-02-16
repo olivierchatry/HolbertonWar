@@ -23,7 +23,7 @@
 
 #define DISPLAY_MAX_LIVE_PER_ADDRESS		8
 #define DISPLAY_MAX_PROCES_PER_ADDRESS	8
-
+#define DISPLAY_MAX_JUMP_PER_CORE				100
 typedef struct display_gl_s
 {
 	GLFWwindow*	window;

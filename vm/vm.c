@@ -127,6 +127,7 @@ process_t*	vm_add_core(vm_t* vm, core_t* core, int32 offset) {
 		process = vm_create_process(vm, NULL, offset);
 		process->reg[0] = core->id;
 		process->core = core;
+		core->internal_id = vm->core_count;
 		vm->cores[vm->core_count++] = core;
 	}
 

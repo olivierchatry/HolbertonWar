@@ -8,6 +8,7 @@
 typedef struct core_s {
 	core_file_header_t*	header;
 	int32								id;
+	int32								internal_id;
 	int32								live_count;
 	int32								live_last_cycle;
 	float*  						color;

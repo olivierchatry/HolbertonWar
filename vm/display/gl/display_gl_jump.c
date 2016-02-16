@@ -22,13 +22,15 @@ void display_gl_jump_update(struct vm_s* vm, struct display_gl_s* display) {
 	int32		i;
 	int8*	jump_vertex_buffer = display->jump_vertex_buffer;
 	mesh_definition_t* def = display_gl_mesh_get_definiton(MESH_TYPE_VC);
+	int32		jump_count_per_core[VM_MAX_CORES] = { 0 };
 
 	display->jump_count = 0;
-
 	for (i = 0; i < vm->process_count; ++i) {
 		process_t* process = vm->processes[i];
-		if (process->current_opcode &&
-				(process->current_opcode->opcode == 7 || process->current_opcode->opcode == 6) ) {
+		if (process->current_opcode 
+			&& (process->current_opcode->opcode == 7 || process->current_opcode->opcode == 6) 
+			&& jump_count_per_core[process->core->internal_id] < DISPLAY_MAX_JUMP_PER_CORE) {
+			jump_count_per_core[process->core->internal_id]++;
 			uint32 jump_color = process->core->color_uint & 0xffffff;
 			v3_t	start, end;
 			// float size = LERP(0.0f, DISPLAY_CELL_SIZE, (float)(process->cycle_wait) / (float)process->current_opcode->cycles);
