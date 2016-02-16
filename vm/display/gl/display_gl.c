@@ -85,6 +85,7 @@ display_gl_t* display_gl_initialize(int width, int height, int full_screen) {
 	glfwWindowHint(GLFW_AUTO_ICONIFY, GL_TRUE);
 	glfwWindowHint(GLFW_FLOATING, GL_FALSE);
 	glfwWindowHint(GLFW_DOUBLEBUFFER, GL_TRUE);
+	glfwWindowHint(GLFW_SAMPLES, 4);
 
 #if defined(_DEBUG)
 	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, 1);
