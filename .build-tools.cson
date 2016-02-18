@@ -1,0 +1,28 @@
+providers: [
+  {
+    key: "bt"
+    config:
+      commands: [
+        {
+          project: "/home/olivier/Documents/perso/HolbertonWar"
+          source: "/home/olivier/Documents/perso/HolbertonWar/.build-tools.cson"
+          name: "Build"
+          command: "cd platforms && ./premake5.linux gmake && cd ../build && make config=release"
+          wd: "."
+          env: {}
+          modifier:
+            shell:
+              command: "bash -c"
+          stdout:
+            pty: false
+            highlighting: "nh"
+            ansi_option: "ignore"
+          stderr:
+            highlighting: "nh"
+            ansi_option: "ignore"
+          output: {}
+          version: 1
+        }
+      ]
+  }
+]

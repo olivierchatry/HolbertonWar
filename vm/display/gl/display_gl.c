@@ -253,6 +253,7 @@ void display_gl_texts(struct vm_s* vm, display_gl_t* display) {
 }
 
 void display_gl_step(struct vm_s* vm, display_gl_t* display) {
+	glfwMakeContextCurrent(display->window);
 	display_gl_camera_update(display);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

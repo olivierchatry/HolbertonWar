@@ -4,9 +4,18 @@
 struct debugger_s;
 typedef struct debugger_s debugger_t;
 
+struct vm_s;
+typedef struct vm_s vm_t;
 
-debugger_t*   debugger_init();
-void          debugger_render(vm_t* vm);
-void          debugger_destroy(debugger_t* debugger);
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+	debugger_t*   debugger_init();
+	void          debugger_render(debugger_t* debugger, vm_t* vm);
+	void          debugger_destroy(debugger_t* debugger);
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -25,14 +25,18 @@ workspace "HolbertonWar"
 			"../vm/display/data/shaders/*.frag",
 			"../vm/display/data/shaders/*.vert",
 			"../externals/glew/src/*.c",
-			"../externals/stb/*.h"
+			"../externals/stb/*.h",
+			"../externals/imgui/examples/libs/gl3w/GL/*.c",
+			"../externals/imgui/examples/libs/gl3w/GL/*.h"
 		}
 		language "C++"
 		files {
-			"../debugger/**.cpp",
-			"../debugger/**.h",
+			"../vm/debugger/**.cpp",
+			"../vm/debugger/**.h",
 			"../externals/imgui/imgui.cpp",
 			"../externals/imgui/imgui_draw.cpp",
+			"../externals/imgui/examples/opengl3_example/imgui_impl_glfw_gl3.cpp",
+			"../externals/imgui/examples/opengl3_example/imgui_impl_glfw_gl3.h",
 			"../externals/imgui/*.h"
 		}
 
@@ -40,7 +44,9 @@ workspace "HolbertonWar"
 			"../externals/glew/include",
 			"../externals/glm",
 			"../externals/stb",
-			"../externals/imgui"
+			"../externals/imgui",
+			"../externals/imgui/examples/opengl3_example",
+			"../externals/imgui/examples/libs/gl3w"
 		}
 
 		filter "system:linux"
@@ -51,7 +57,7 @@ workspace "HolbertonWar"
 			else
 				libdirs "../externals/glfw/lib/linux/x86"
 			end
-			links {"glfw3", "X11", "Xxf86vm", "Xrandr", "Xi", "GL", "pthread", "m", "ncurses"}
+			links {"glfw3", "X11", "Xxf86vm", "Xrandr", "Xi", "GL", "pthread", "m", "ncurses", "dl"}
 
 		filter "system:macosx"
 			platforms 	{"Universal"}

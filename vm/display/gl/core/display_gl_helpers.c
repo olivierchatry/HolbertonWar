@@ -128,8 +128,7 @@ GLuint display_gl_load_texture(char* file_name)
 			}
 		}
 		free(data);
-	}
-	printf("loaded texture => %s\n", file_name);
+	}	
 	return id;
 }
 

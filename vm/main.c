@@ -5,6 +5,7 @@
 #include "vm.h"
 
 #include "display/gl/display_gl.h"
+#include "debugger/debugger.h"
 
 // #define RENDER_NCURSES
 #define RENDER_GL
@@ -115,14 +116,13 @@ void print_winning_core(vm_t* vm) {
 }
 
 int main(int ac, char** av) {
-	vm_t*				vm		= vm_initialize();
+	vm_t*					vm;
 	display_gl_t*	display = NULL;
-	int					bound;
+	int						bound;
+	debugger_t*		debugger = NULL;
 
-	if (parse_arguments(vm, ac, av) <= 0) {
-		return -1;
-	}
-	if (check_core_endianess(vm) < 0) {
+	vm = vm_initialize();
+	if ( (parse_arguments(vm, ac, av) <= 0) || (check_core_endianess(vm) < 0)) {
 		return -1;
 	}
 
@@ -134,10 +134,6 @@ int main(int ac, char** av) {
 
 	memory_access_initialize(is_cpu_big_endian() != vm->big_endian);
 
-	#ifdef RENDER_NCURSES
-		initscr();
-		raw();
-	#endif
 #if defined(_DEBUG)
 		vm->full_screen = 0;
 #endif
@@ -145,7 +141,7 @@ int main(int ac, char** av) {
 #ifdef RENDER_GL
 		display = display_gl_initialize(1980, 1080, vm->full_screen);
 #endif
-
+	debugger = debugger_init();
 	while (vm->process_count && !display_gl_should_exit(display)) {
 		int32 i;
 		int update_display = 0;
@@ -174,21 +170,6 @@ int main(int ac, char** av) {
 		}
 		// printf("cycle %d, process count %d, live count %d, cycle to die %d\n", vm->cycle_total, vm->process_count, vm->live_count, vm->cycle_to_die);
 		/*clear_console();*/
-	#ifdef RENDER_NCURSES
-		{
-			int row, col, mem;
-			getmaxyx(stdscr,row,col);
-	 		mem = 0;
-			for (int y = 0; y < row; ++y) {
-				for (int x = 0; x < col; x+=3) {
-					if (mem < vm->memory_size) {
-						mvprintw(y, x, "%.2X ", (unsigned char)vm->memory[mem ++]);
-					}
-				}
-			}
-			refresh();
-		}
-	#endif
 		if (vm->cycle_current > vm->cycle_to_die) {
 			vm->cycle_current = 0;
 			vm_kill_process_if_no_live(vm);
@@ -214,14 +195,13 @@ int main(int ac, char** av) {
 			}
 			display_gl_step(vm, display);
 		}
+		debugger_render(debugger, vm);
 	#endif
 
 	}
 
-#ifdef RENDER_NCURSES
-	endwin();
-#endif
 	print_winning_core(vm);
+	debugger_destroy(debugger);
 #ifdef RENDER_GL
 	display_gl_destroy(display);
 #endif
