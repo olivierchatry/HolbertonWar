@@ -12,6 +12,7 @@
 #define ASM_PARSER_ERROR						5
 #define ASM_LABEL_NOT_FOUND					6
 #define ASM_INVALID_NUMBER					7
+#define ASM_LABEL_REDEFINITION			8
 
 
 typedef struct label_s {
@@ -49,7 +50,7 @@ label_t* 	label_create(char* name, int32 offset, int32 opcode_offset);
 label_t* 	label_forward_create(char* name, int32 offset, int32 opcode_offset, int32 type, int32 line);
 void			label_destroy(void* label);
 label_t*  label_find_in_list(char* name, list_t* labels);
-
+int				label_is_valid(char* name);
 int       parse(char* line, char** output, int max);
 
 

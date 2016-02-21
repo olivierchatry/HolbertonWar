@@ -30,7 +30,7 @@ int label_get_offset(char* label_name, generator_t* generator, int32 type) {
 		return label->opcode_offset - generator->core.code_size;
 	}
 	else {
-		label_t* forward = label_forward_create(label_name,
+		label_t* forward = label_forward_create(label_name + 1,
 			generator->byte_code_offset,
 			generator->core.code_size,
 			type,
@@ -58,7 +58,7 @@ static int32 parse_number(generator_t* generator, char* value, int32 type) {
 	}
 	return ret;
 }
-
+	
 void generate_instruction(opcode_t* opcode, char** output, int count, generator_t* generator) {
 	if ((count - 1) != opcode->arg_count) {
 		generator->error = ASM_INVALID_ARGUMENT_COUNT;
@@ -87,12 +87,12 @@ void generate_instruction(opcode_t* opcode, char** output, int count, generator_
 				}
 				parsed_type = OP_ARG_TYPE_REG;
 			}
-			else if (strchr(arg, CORE_ASM_ADD) != NULL) {
-				parsed_type = OP_ARG_TYPE_ADD;
+			else if (strchr(arg, CORE_ASM_IMM) != NULL) {
+				parsed_type = OP_ARG_TYPE_IMM;
 				value = parse_number(generator, arg + 1, parsed_type);
 			}
 			else {
-				parsed_type = OP_ARG_TYPE_IMM;
+				parsed_type = OP_ARG_TYPE_ADD;
 				value = parse_number(generator, arg, parsed_type);
 			}
 
@@ -113,7 +113,7 @@ void generate_instruction(opcode_t* opcode, char** output, int count, generator_
 						type = CORE_ARG_TYPE_IMM;
 						generator_write32(generator, value);
 					}
-					*opcode_type |= (type << (arg_number * 2));
+					*opcode_type |= (type << (6 - (arg_number * 2)));
 				}
 			} else if ( generator->error == ASM_INVALID_NUMBER ) {
 				fprintf(stderr, "ERROR: invalid number format (%s) for argument %d line %d\n",
@@ -133,24 +133,39 @@ void generate(char** output, int count, generator_t* generator) {
 	if (strcmp(output[0], ".name") == 0) {
 		strncpy(generator->core.name, output[1], CORE_FILE_NAME_MAX_SIZE - 1);
 	}
-	else if (*output[0] == ':') {
-		label_t* label = label_create(output[0], generator->core.code_size, generator->core.code_size);
-		list_add(&generator->labels, label);
+	else if (strcmp(output[0], ".comment") == 0) {
+		strncpy(generator->core.comment, output[1], CORE_FILE_COMMENT_MAX_SIZE - 1);
 	}
 	else {
-		opcode_t* opcode = holberton_core_get_opcodes();
-		while (opcode->mnemonic) {
-			if (strcmp(opcode->mnemonic, output[0]) == 0) {
-				break;
+		int offset = 0;
+		if (label_is_valid(output[offset])) {
+			label_t* label = label_find_in_list(output[offset], generator->labels);
+			if (label) {
+				generator->error = ASM_LABEL_REDEFINITION;
+				fprintf(stderr, "ERROR: label (%s) defined at line %d redefined at line %d\n", output[offset], label->line, generator->current_line);
+				offset++;
 			}
-			opcode++;
+			else {
+				label = label_create(output[offset++], generator->core.code_size, generator->core.code_size);
+				label->line = generator->current_line;
+				list_add(&generator->labels, label);
+			}
 		}
-		if (opcode->mnemonic) {
-			generate_instruction(opcode, output + 1, count, generator);
-		}
-		else {
-			generator->error = ASM_INVALID_INSTRUCTION;
-			fprintf(stderr, "ERROR: unrecognized instruction (%s) line %d\n", output[0], generator->current_line);
+		if (offset < count) {
+			opcode_t* opcode = holberton_core_get_opcodes();
+			while (opcode->mnemonic) {
+				if (strcmp(opcode->mnemonic, output[offset]) == 0) {
+					break;
+				}
+				opcode++;
+			}
+			if (opcode->mnemonic) {
+				generate_instruction(opcode, output + offset + 1, count - offset, generator);
+			}
+			else {
+				generator->error = ASM_INVALID_INSTRUCTION;
+				fprintf(stderr, "ERROR: unrecognized instruction (%s) line %d\n", output[0], generator->current_line);
+			}
 		}
 	}
 }

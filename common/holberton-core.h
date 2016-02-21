@@ -11,19 +11,22 @@ typedef uint32_t  uint32;
 typedef uint16_t  uint16;
 typedef uint8_t  	uint8;
 
-#define CORE_REGISTER_COUNT				16
-#define CORE_FILE_NAME_MAX_SIZE   64
+#define CORE_REGISTER_COUNT						16
+#define CORE_FILE_NAME_MAX_SIZE				128
+#define CORE_FILE_COMMENT_MAX_SIZE		2048
+
 #define CORE_FILE_VERSION         1
 
-#define CORE_FILE_MAGIC						0xcacbcdce
-#define CORE_FILE_INVERT_MAGIC    0xcecdcbca
+#define CORE_FILE_MAGIC						0x00ea83f3
+#define CORE_FILE_INVERT_MAGIC    0xf383ea00
 
 typedef struct core_file_header_s {
 	int32 magic;
-  int32 version;
 
   char  name[CORE_FILE_NAME_MAX_SIZE];
   int32 code_size;
+	char  comment[CORE_FILE_COMMENT_MAX_SIZE];
+
 } core_file_header_t;
 
 
@@ -31,9 +34,11 @@ typedef struct core_file_header_s {
 #define CORE_ARG_TYPE_IMM 2
 #define CORE_ARG_TYPE_ADD 3
 
-#define CORE_ASM_ADD	'%'
-#define CORE_ASM_SEP	','
-#define CORE_ASM_COMMENT ';'
+
+#define CORE_ASM_LABEL		':'
+#define CORE_ASM_IMM			'%'
+#define CORE_ASM_SEP			','
+#define CORE_ASM_COMMENT	'#'
 
 
 #define OP_ARG_TYPE_REG 1

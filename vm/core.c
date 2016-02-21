@@ -78,7 +78,6 @@ core_t* 	core_load_from_file(const char* file_name) {
 			if (inverted) {
 				core->header->code_size = invert_int32(core->header->code_size);
 				core->header->magic = invert_int32(core->header->magic);
-				core->header->version = invert_int32(core->header->version);
 			}
 			core->id = 0;
 			core->live_count = 0;

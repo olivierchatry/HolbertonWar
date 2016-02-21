@@ -4,6 +4,7 @@
 #define IS_SPACE(car) ( (car == ' ' ) || (car == '\t') )
 #define IS_SEP(car) (car == CORE_ASM_SEP)
 #define IS_COMMENT(car) (car == CORE_ASM_COMMENT)
+#define IS_LABEL(car) (car == CORE_ASM_LABEL)
 
 static void	 clean(char* line) {
 	while (*line) {
@@ -28,12 +29,16 @@ int   parse(char* line, char** output, int max)
 		switch (state) {
 		case 0:
 			if (!IS_SPACE(c)) {
-				output[0] = line;
-				count++;
+				output[count++] = line;
 				state = 1;
 			}
 			break;
 		case 1:
+			if (IS_LABEL(c)) {
+				line++;
+				*line = 0;
+				state = 0;
+			}
 			if (IS_SPACE(c)) {
 				*line = 0;
 				if (*output[0] == '.') state = 2;
@@ -42,8 +47,7 @@ int   parse(char* line, char** output, int max)
 			break;
 		case 2:
 			if (!IS_SPACE(c)) {
-				output[1] = line;
-				count++;
+				output[count++] = line;
 				state = -1;
 			}
 			break;
