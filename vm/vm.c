@@ -3,6 +3,7 @@
 #include <string.h>
 #include "vm.h"
 #include "core.h"
+#include "../common/holberton-core.h"
 #include "../common/memory_access.h"
 
 
@@ -179,29 +180,39 @@ opcode_t* vm_get_opcode(vm_t* vm, process_t* process) {
 }
 
 
-int 				vm_check_opcode(vm_t* vm, process_t* process, int* args, int* regs, int modulo) {
+int 				vm_check_opcode(vm_t* vm, process_t* process, int* args, int* regs, int* types, int modulo) {
 	int i = 0;
-	int map[4] = {0, OP_ARG_TYPE_REG, OP_ARG_TYPE_IMM, OP_ARG_TYPE_ADD};
+	int map[4] = { 0, OP_ARG_TYPE_REG, OP_ARG_TYPE_IMM, OP_ARG_TYPE_ADD };
+
 	if (process->current_opcode->opcode) {
 		int32 pc = process->pc + 1;
 		int8 encoding;
 
 		pc = memory_bound(pc, &process->core->bound);
-		encoding = memory_read8(vm->memory, pc++, &process->core->bound, NULL);
+		if (process->current_opcode->processing_flags & ASM_PROCESSING_NO_TYPES) {
+			encoding = process->current_opcode->arg_types[0] << 6; // hack ? instruction that does not have encoding byte only have one params.
+		}
+		else {
+			encoding = memory_read8(vm->memory, pc++, &process->core->bound, NULL);
+		}
+
 		pc = memory_bound(pc, &process->core->bound);
 
 		for (; i < process->current_opcode->arg_count; ++i) {
-			int encode = TYPE(encoding, i);
-
-			int type = map[ encode ];
-			if ( (type & process->current_opcode->arg_types[i]) == 0 )
+			*types = map[TYPE(encoding, i)];
+			if ( (*types & process->current_opcode->arg_types[i]) == 0 )
 				return VM_ERROR_ENCODING;
-			if ( type == OP_ARG_TYPE_IMM ) {
-				args[i] = memory_read32(vm->memory, pc, &process->core->bound, NULL);
+			if (*types == OP_ARG_TYPE_IMM) {
+				if (process->current_opcode->processing_flags & ASM_PROCESSING_IMM_AS_ADD) {
+					args[i] = memory_read16(vm->memory, pc, &process->core->bound, NULL);
+					pc += 2;
+				} else {
+					args[i] = memory_read32(vm->memory, pc, &process->core->bound, NULL);
+					pc += 4;
+				}
 				regs[i] = -1;
-				pc += 4;
 			}
-			else if ( type == OP_ARG_TYPE_ADD ) {
+			else if (*types == OP_ARG_TYPE_ADD) {
 				regs[i] = memory_read16(vm->memory, pc, &process->core->bound, NULL);
 				args[i] = process->pc + regs[i] % modulo;
 				args[i] = memory_read32(vm->memory, args[i], &process->core->bound, &process->memory_callback);
@@ -215,6 +226,7 @@ int 				vm_check_opcode(vm_t* vm, process_t* process, int* args, int* regs, int 
 				regs[i] = reg - 1;
 				pc++;
 			}
+			types++;
 			pc = memory_bound(pc, &process->core->bound);
 		}
 		process->next_pc = pc;
@@ -245,75 +257,81 @@ void	vm_live(vm_t* vm, process_t* process, int32 id)
 
 int 				vm_execute(vm_t* vm, process_t* process) {
 	int32				pc;
-	int32				args[4] = {0,0,0,0}, regs[4]={0,0,0,0};
+	int32				args[4] = { 0,0,0,0 }, regs[4] = { 0,0,0,0 }, types[4] = { 0,0,0,0 };
 	int32				addr;
 
 	pc = process->pc = process->next_pc;
 	opcode_t* op = vm_get_opcode(vm, process);
-	int32	ret = vm_check_opcode(vm, process, args, regs, VM_MEMORY_MODULO);
+	int32	ret = vm_check_opcode(vm, process, args, regs, types, (op->processing_flags & ASM_PROCESSING_NO_MOD) ? VM_MEMORY_SIZE : VM_MEMORY_MODULO);
 
 	if (ret == VM_OK) {
 		switch(op->opcode) {
-		case 0x01:
+		case HCORE_ADD_OPCODE:
 			process->reg[regs[2]] = args[0] + args[1];
 			process->zero = process->reg[regs[2]] == 0;
 			break;
-		case 0x02:
+		case HCORE_SUB_OPCODE:
 			process->reg[regs[2]] = args[0] - args[1];
 			process->zero = process->reg[regs[2]] == 0;
 			break;
-		case 0x03:
+		case HCORE_AND_OPCODE:
 			process->reg[regs[2]] = args[0] & args[1];
 			process->zero = process->reg[regs[2]] == 0;
 			break;
-		case 0x04:
+		case HCORE_OR_OPCODE:
 			process->reg[regs[2]] = args[0] | args[1];
 			process->zero = process->reg[regs[2]] == 0;
 			break;
-		case 0x05:
+		case HCORE_XOR_OPCODE:
 			process->reg[regs[2]] = args[0] ^ args[1];
 			process->zero = process->reg[regs[2]] == 0;
 			break;
-		case 0x06:
+		case HCORE_ZJMP_OPCODE:
 			if (process->zero) {
-				break;
+				addr = pc + args[0] % VM_MEMORY_MODULO;
+				process->next_pc = memory_bound(addr, &process->core->bound);
+				process->jump_from = pc;
+				process->jump_to = addr;
 			}
-		case 0x07:
-			addr = pc + args[0] % VM_MEMORY_MODULO;
-			process->next_pc = memory_bound(addr, &process->core->bound);
-			process->jump_from = pc;
-			process->jump_to = addr;
 			break;
-		case 0x08:
+		case HCORE_LLD_OPCODE:
+		case HCORE_LD_OPCODE:
 			process->reg[regs[1]] = args[0];
 			process->zero = args[0] == 0;
 			break;
-		case 0x09:
-			addr = pc + args[1] % VM_MEMORY_MODULO;
-			memory_write32(args[0], vm->memory, addr, &process->core->bound, &process->memory_callback);
-			process->zero = args[0] == 0;
+		case HCORE_ST_OPCODE:
+			if (types[1] == OP_ARG_TYPE_REG) {
+				process->reg[regs[1]] = args[0];
+			} else {
+				addr = pc + args[1] % VM_MEMORY_MODULO;
+				memory_write32(args[0], vm->memory, addr, &process->core->bound, &process->memory_callback);
+			}
 			break;
-		case 0x0a:
+		case HCORE_FORK_OPCODE:
 			addr = pc + args[0] % VM_MEMORY_MODULO;
 			vm_create_process(vm, process, memory_bound(addr, &process->core->bound));
 			break;
-		case 0x0b:
-			break;
-		case 0x0c:
+		case HCORE_LIVE_OPCODE:
 			process->cycle_live = vm->cycle_total;
 			vm_live(vm, process, args[0]);
 			break;
-		case 0x0d:
+		case HCORE_LDI_OPCODE:
 			addr = pc + (args[0] + args[1]) % VM_MEMORY_MODULO;
 			process->reg[regs[2]] = memory_read32(vm->memory, addr, &process->core->bound, &process->memory_callback);
 			process->zero = process->reg[regs[2]] == 0;
 			break;
-		case 0x0e:
+		case HCORE_LLDI_OPCODE:
+			addr = pc + (args[0] + args[1]) % VM_MEMORY_SIZE;
+			process->reg[regs[2]] = memory_read32(vm->memory, addr, &process->core->bound, &process->memory_callback);
+			process->zero = process->reg[regs[2]] == 0;
+			break;
+		case HCORE_STI_OPCODE:
 			addr = pc + (args[1] + args[2]) % VM_MEMORY_MODULO;
 			memory_write32(args[0], vm->memory, addr, &process->core->bound, &process->memory_callback);
-			process->zero = args[0] == 0;
 			break;
-		case 0x0f:
+		case HCORE_AFF_OPCODE:
+			break;
+		case HCORE_GTMD_OPCODE:
 			process->reg[regs[0]] = vm->cycle_barrier;
 			process->zero = vm->cycle_barrier == 0;
 			break;

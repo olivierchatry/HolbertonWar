@@ -28,7 +28,7 @@ void display_gl_jump_update(struct vm_s* vm, struct display_gl_s* display) {
 	for (i = 0; i < vm->process_count; ++i) {
 		process_t* process = vm->processes[i];
 		if (process->current_opcode 
-			&& (process->current_opcode->opcode == 7 || process->current_opcode->opcode == 6) 
+			&& (process->current_opcode->opcode == HCORE_ZJMP_OPCODE) 
 			&& jump_count_per_core[process->core->internal_id] < DISPLAY_MAX_JUMP_PER_CORE) {
 			jump_count_per_core[process->core->internal_id]++;
 			uint32 jump_color = process->core->color_uint & 0xffffff;

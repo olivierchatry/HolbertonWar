@@ -33,7 +33,7 @@ void display_gl_live_update(struct vm_s* vm, struct display_gl_s* display) {
 		int32 address = process->pc;
 		if ( (vm->shadow[address] < DISPLAY_MAX_LIVE_PER_ADDRESS) 
 			&& process->current_opcode 
-			&& (process->current_opcode->opcode == 0x0c)) {
+			&& (process->current_opcode->opcode == HCORE_LIVE_OPCODE)) {
 			uint32 live_color = process->last_core_live->color_uint & 0xffffff;
 			v3_t	start, end;
 			// float size = LERP(0.0f, DISPLAY_CELL_SIZE * 2.0f, (float)(process->cycle_wait) / (float)process->current_opcode->cycles);

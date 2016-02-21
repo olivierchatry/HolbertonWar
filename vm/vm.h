@@ -4,7 +4,7 @@
 #include "../common/holberton-core.h"
 #include "core.h"
 
-#define TYPE(v, a) ((v >> (a * 2)) & 3)
+#define TYPE(v, a) ((v >> (6 - a * 2)) & 3)
 
 #define VM_ERROR_ENCODING		-1
 #define VM_ERROR_OPCODE			-2
