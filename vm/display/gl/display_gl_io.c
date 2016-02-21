@@ -15,9 +15,6 @@ void display_gl_io_init(struct display_gl_s* display) {
 		{"in_Value", 1},
 		{NULL, 0}
 	};
-	int32 width = display->grid_width;
-	int32 height = display->grid_height;
-	int32 size = width * height;
 
 	display->write_texture = display_gl_load_texture(TEXTURE("write.png"));
 	display->read_texture = display_gl_load_texture(TEXTURE("read.png"));
@@ -32,8 +29,8 @@ void display_gl_io_init(struct display_gl_s* display) {
 	glUniform1iv(display->io_uniform_texture, 1, &samplerId);
 	glUseProgram(0);
 
-	display->io_read_buffer = (uint8*)malloc((size + height) * 4);
-	display->io_write_buffer = (uint8*)malloc((size + height) * 4);
+	display->io_read_buffer = (uint8*)malloc(display->memory_size * 4);
+	display->io_write_buffer = (uint8*)malloc(display->memory_size * 4);
 }
 
 void display_gl_io_update(struct vm_s* vm, struct display_gl_s* display) {

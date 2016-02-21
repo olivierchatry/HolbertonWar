@@ -23,7 +23,7 @@ void display_gl_grid_get_position(struct display_gl_s* display, int addr, v3_t* 
 void display_gl_grid_init(display_gl_t* display, int memory_size) {
 	float						sqr_size = sqrtf(VM_MEMORY_SIZE);
 	int32						width = (int32)roundf(sqr_size * display->screen_ratio);
-	int32						height = (int32)roundf(sqr_size * 1.0f / display->screen_ratio);
+	int32						height = (int32)roundf(sqr_size * 1.0f / display->screen_ratio) + 1;
 	int32						size = width * height;
 	int32						x, y;
 	t_grid_vertex*	vb;

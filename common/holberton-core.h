@@ -12,14 +12,15 @@ typedef uint16_t  uint16;
 typedef uint8_t  	uint8;
 
 #define CORE_REGISTER_COUNT						16
-#define CORE_FILE_NAME_MAX_SIZE				128 + 1
-#define CORE_FILE_COMMENT_MAX_SIZE		2048 + 1
+#define CORE_FILE_NAME_MAX_SIZE				(128)
+#define CORE_FILE_COMMENT_MAX_SIZE		(2048)
 
 #define CORE_FILE_VERSION         1
 
 #define CORE_FILE_MAGIC						0x00ea83f3
 #define CORE_FILE_INVERT_MAGIC    0xf383ea00
 
+#pragma pack(push, 1)
 typedef struct core_file_header_s {
 	int32 magic;
 
@@ -28,7 +29,7 @@ typedef struct core_file_header_s {
 	char  comment[CORE_FILE_COMMENT_MAX_SIZE];
 
 } core_file_header_t;
-
+#pragma pack(pop)
 
 #define CORE_ARG_TYPE_REG 1
 #define CORE_ARG_TYPE_IMM 2

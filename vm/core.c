@@ -79,6 +79,11 @@ core_t* 	core_load_from_file(const char* file_name) {
 				core->header->code_size = invert_int32(core->header->code_size);
 				core->header->magic = invert_int32(core->header->magic);
 			}
+			if (core->header->code_size > size) {
+				free(core);
+				free(data);
+				return NULL;
+			}
 			core->id = 0;
 			core->live_count = 0;
 			core->color = g_colors[g_core_count++];
