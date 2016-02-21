@@ -13,7 +13,7 @@
 #define ASM_LABEL_NOT_FOUND					6
 #define ASM_INVALID_NUMBER					7
 #define ASM_LABEL_REDEFINITION			8
-
+#define ASM_INVALID_OUTPUT_FILE			9
 
 
 

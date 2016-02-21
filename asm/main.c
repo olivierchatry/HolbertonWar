@@ -214,21 +214,26 @@ void write_output_file(char* input_file_name, generator_t* generator) {
 		int32	output_size = generator->byte_code_base + generator->byte_code_offset;
 		FILE* output = fopen(output_file_name, "wb");
 		int32 i;
-
-		generator->byte_code_base = 0;
-		generator->byte_code_offset = 0;
-
-		generator_write32(generator, CORE_FILE_MAGIC);
-
-		for (i = 0; i < CORE_FILE_NAME_MAX_SIZE; ++i) {
-			generator_write8(generator, generator->core.name[i]);
+		if (output == NULL) {
+			generator->error = ASM_INVALID_OUTPUT_FILE;
+			fprintf(stderr, "ERROR: cannot open output file %s.\n", output_file_name);
 		}
-		generator_write32(generator, generator->core.code_size);
-		for (i = 0; i < CORE_FILE_COMMENT_MAX_SIZE; ++i) {
-			generator_write8(generator, generator->core.comment[i]);
+		else {
+			generator->byte_code_base = 0;
+			generator->byte_code_offset = 0;
+
+			generator_write32(generator, CORE_FILE_MAGIC);
+
+			for (i = 0; i < CORE_FILE_NAME_MAX_SIZE; ++i) {
+				generator_write8(generator, generator->core.name[i]);
+			}
+			generator_write32(generator, generator->core.code_size);
+			for (i = 0; i < CORE_FILE_COMMENT_MAX_SIZE; ++i) {
+				generator_write8(generator, generator->core.comment[i]);
+			}
+			fwrite(generator->byte_code, 1, output_size, output);
+			fclose(output);
 		}
-		fwrite(generator->byte_code, 1, output_size, output);
-		fclose(output);
 	}
 }
 
