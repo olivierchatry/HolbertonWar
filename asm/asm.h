@@ -15,6 +15,8 @@
 #define ASM_LABEL_REDEFINITION			8
 
 
+
+
 typedef struct label_s {
 	char* name;
 	int32	offset;

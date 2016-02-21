@@ -59,7 +59,32 @@ static int32 parse_number(generator_t* generator, char* value, int32 type) {
 	return ret;
 }
 	
-void generate_instruction(opcode_t* opcode, char** output, int count, generator_t* generator) {
+#define ASM_PROCESSING_NORMAL		0
+#define ASM_IMM_AS_ADD					1
+#define ASM_NO_TYPES						2
+
+
+int32 g_processing[] = {
+	ASM_NO_TYPES, // live
+	ASM_PROCESSING_NORMAL, // ld
+	ASM_PROCESSING_NORMAL, // st
+	ASM_PROCESSING_NORMAL, // add
+	ASM_PROCESSING_NORMAL, // sub 
+	ASM_PROCESSING_NORMAL, // and
+	ASM_PROCESSING_NORMAL, // or
+	ASM_PROCESSING_NORMAL, // xor
+	ASM_NO_TYPES | ASM_IMM_AS_ADD, // zjmp
+	ASM_IMM_AS_ADD, // ldi
+	ASM_IMM_AS_ADD, // sti
+	ASM_NO_TYPES, // fork
+	ASM_PROCESSING_NORMAL, // lld
+	ASM_IMM_AS_ADD, // lldi
+	ASM_NO_TYPES, // lfork
+	ASM_PROCESSING_NORMAL, // aff
+	ASM_PROCESSING_NORMAL, // gtmd
+};
+
+void generate_instruction(opcode_t* opcode, int32 processing_flags, char** output, int count, generator_t* generator) {
 	if ((count - 1) != opcode->arg_count) {
 		generator->error = ASM_INVALID_ARGUMENT_COUNT;
 		fprintf(stderr, "ERROR: invalid number of arguments (%d, expected %d) line %d\n",
@@ -68,10 +93,14 @@ void generate_instruction(opcode_t* opcode, char** output, int count, generator_
 			generator->current_line);
 	}
 	else {
-		char* opcode_type;
+		char	fake_opcode_type;
+		char* opcode_type = &fake_opcode_type;
 		int32 arg_number = 0;
+
 		generator_write8(generator, opcode->opcode);
-		opcode_type = generator_write8(generator, 0);
+		if ((processing_flags & ASM_NO_TYPES) != ASM_NO_TYPES) {
+			opcode_type = generator_write8(generator, 0);
+		}
 
 		while ( (arg_number < opcode->arg_count) && (generator->error == ASM_OK)) {
 			char* arg = *output++;
@@ -89,7 +118,7 @@ void generate_instruction(opcode_t* opcode, char** output, int count, generator_
 			}
 			else if (strchr(arg, CORE_ASM_IMM) != NULL) {
 				parsed_type = OP_ARG_TYPE_IMM;
-				value = parse_number(generator, arg + 1, parsed_type);
+				value = parse_number(generator, arg + 1, (processing_flags & ASM_IMM_AS_ADD) ? OP_ARG_TYPE_ADD : OP_ARG_TYPE_IMM);
 			}
 			else {
 				parsed_type = OP_ARG_TYPE_ADD;
@@ -111,7 +140,12 @@ void generate_instruction(opcode_t* opcode, char** output, int count, generator_
 						generator_write16(generator, (int16)value);
 					} else {
 						type = CORE_ARG_TYPE_IMM;
-						generator_write32(generator, value);
+						if (processing_flags & ASM_IMM_AS_ADD) {
+							generator_write16(generator, value);
+						}
+						else {
+							generator_write32(generator, value);
+						}
 					}
 					*opcode_type |= (type << (6 - (arg_number * 2)));
 				}
@@ -153,14 +187,15 @@ void generate(char** output, int count, generator_t* generator) {
 		}
 		if (offset < count) {
 			opcode_t* opcode = holberton_core_get_opcodes();
+			int32*		processing_flags = g_processing;
 			while (opcode->mnemonic) {
 				if (strcmp(opcode->mnemonic, output[offset]) == 0) {
 					break;
 				}
-				opcode++;
+				opcode++, processing_flags++;
 			}
 			if (opcode->mnemonic) {
-				generate_instruction(opcode, output + offset + 1, count - offset, generator);
+				generate_instruction(opcode, *processing_flags, output + offset + 1, count - offset, generator);
 			}
 			else {
 				generator->error = ASM_INVALID_INSTRUCTION;
@@ -184,12 +219,14 @@ void write_output_file(char* input_file_name, generator_t* generator) {
 		generator->byte_code_offset = 0;
 
 		generator_write32(generator, CORE_FILE_MAGIC);
-		generator_write32(generator, CORE_FILE_VERSION);
 
 		for (i = 0; i < CORE_FILE_NAME_MAX_SIZE; ++i) {
 			generator_write8(generator, generator->core.name[i]);
 		}
 		generator_write32(generator, generator->core.code_size);
+		for (i = 0; i < CORE_FILE_COMMENT_MAX_SIZE; ++i) {
+			generator_write8(generator, generator->core.comment[i]);
+		}
 		fwrite(generator->byte_code, 1, output_size, output);
 		fclose(output);
 	}

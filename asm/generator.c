@@ -1,11 +1,13 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <memory.h>
 #include "asm.h"
 #include "../common/utils.h"
 
 void generator_allocate(generator_t* generator) {
 	generator->byte_code_max_size += 4096;
 	generator->byte_code = (char*)realloc(generator->byte_code, generator->byte_code_max_size);
+	memset(&generator->core, 0, sizeof(generator->core));
 	generator->is_cpu_big_endian = is_cpu_big_endian();
 }
 
