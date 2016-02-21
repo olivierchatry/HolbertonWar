@@ -75,7 +75,14 @@ display_gl_t* display_gl_initialize(int width, int height, int full_screen) {
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	GLFWmonitor* monitor = glfwGetPrimaryMonitor();
 
+	int widthMM, heightMM;
+	glfwGetMonitorPhysicalSize(monitor, &widthMM, &heightMM);
+	
 	const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+
+	const float dpi = (float) mode->width / ((float) widthMM / 25.4f);
+
+	display->dpi_text_scale = dpi / 96.0f;
 
 	glfwWindowHint(GLFW_RED_BITS, mode->redBits);
 	glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
@@ -247,7 +254,9 @@ void display_gl_camera_update(display_gl_t* display) {
 void display_gl_texts(struct vm_s* vm, display_gl_t* display) {
 	mat4_t projection;
 	mat4_ident(&projection);
-	mat4_ortho(&projection, 0, display->frame_buffer_width * 0.5f, display->frame_buffer_height * 0.5f, 0, -1000, 1000);
+	const float scale = 1.0f / display->dpi_text_scale;
+
+	mat4_ortho(&projection, 0, display->frame_buffer_width * scale, display->frame_buffer_height * scale, 0, -1000, 1000);
 	display_gl_text_render(display->texts, &projection);
 	display_gl_text_clear(display->texts);
 }
@@ -273,12 +282,13 @@ void display_gl_step(struct vm_s* vm, display_gl_t* display) {
 	display_gl_process_render(vm, display);
 
 	glEnable(GL_BLEND);
-	display_gl_texts(vm, display);
 	display_gl_jump_update(vm, display);
 	display_gl_jump_render(vm, display);
 
 	display_gl_live_update(vm, display);
 	display_gl_live_render(vm, display);
+
+	display_gl_texts(vm, display);
 
 	glfwSwapBuffers(display->window);
 	glfwPollEvents();

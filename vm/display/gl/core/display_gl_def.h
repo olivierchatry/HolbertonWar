@@ -89,8 +89,9 @@ typedef struct display_gl_s
 	uint32										jump_count;
 
 	mat4_t										projection_view;
-	display_gl_text_t*						texts;
+	display_gl_text_t*				texts;
 
+	float											dpi_text_scale;
 } display_gl_t;
 
 #endif
