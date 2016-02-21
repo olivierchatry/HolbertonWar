@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "asm.h"
-
+#include "../common/utils.h"
 
 label_t* label_forward_create(char* name, int32 offset, int32 opcode_offset, int32 type, int32 line) {
 	label_t* label = (label_t*)malloc(sizeof(label_t));
