@@ -134,7 +134,7 @@ process_t*	vm_add_core(vm_t* vm, core_t* core, int32 offset) {
 
 void	vm_reset_process_io_op(process_t* process) {
 	process->memory_read_op_count = 0;
-	process->memory_write_op_count = 0;	
+	process->memory_write_op_count = 0;
 }
 
 void vm_clean_dead_process(vm_t* vm) {
@@ -207,7 +207,7 @@ int 				vm_check_opcode(vm_t* vm, process_t* process, int* args, int* regs, int*
 					args[i] = memory_read32(vm->memory, pc, &process->core->bound, NULL);
 					pc += 4;
 				}
-				regs[i] = -1;
+				regs[i] = args[i];
 			}
 			else if (*types == OP_ARG_TYPE_ADD) {
 				regs[i] = memory_read16(vm->memory, pc, &process->core->bound, NULL);
@@ -300,7 +300,7 @@ int 				vm_execute(vm_t* vm, process_t* process) {
 			if (types[1] == OP_ARG_TYPE_REG) {
 				process->reg[regs[1]] = args[0];
 			} else {
-				addr = pc + args[1] % VM_MEMORY_MODULO;
+				addr = pc + regs[1] % VM_MEMORY_MODULO;
 				memory_write32(args[0], vm->memory, addr, &process->core->bound, &process->memory_callback);
 			}
 			break;
