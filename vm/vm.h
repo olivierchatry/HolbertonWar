@@ -54,7 +54,6 @@ typedef struct process_s
 typedef struct vm_s
 {
 	int8*		memory;
-	int8*		shadow;
 	int32		memory_size;
 	int32		memory_modulo;
 	int32		live_count;

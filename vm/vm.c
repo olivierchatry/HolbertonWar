@@ -27,7 +27,6 @@ vm_t* vm_initialize() {
 	memset(vm, 0, sizeof(vm_t));
 
 	vm->memory = (int8*) malloc(VM_MEMORY_SIZE);
-	vm->shadow = (int8*)malloc(VM_MEMORY_SIZE);
 	vm->memory_size = VM_MEMORY_SIZE;
 	memset(vm->memory, 0, VM_MEMORY_SIZE);
 
@@ -50,7 +49,6 @@ vm_t* vm_initialize() {
 void vm_destroy(vm_t* vm) {
 	int32 i = 0;
 	free(vm->memory);
-	free(vm->shadow);
 	for (; i < vm->process_count; ++i) {
 		if (!vm->processes[i]->free) {
 			free(vm->processes[i]);
@@ -136,7 +134,7 @@ process_t*	vm_add_core(vm_t* vm, core_t* core, int32 offset) {
 
 void	vm_reset_process_io_op(process_t* process) {
 	process->memory_read_op_count = 0;
-	process->memory_write_op_count = 0;
+	process->memory_write_op_count = 0;	
 }
 
 void vm_clean_dead_process(vm_t* vm) {

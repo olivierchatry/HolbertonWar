@@ -20,25 +20,29 @@ void display_gl_live_init(struct display_gl_s* display) {
 }
 
 void display_gl_live_update(struct vm_s* vm, struct display_gl_s* display) {
-	int32		i;
-	int8*	live_vertex_buffer = display->live_vertex_buffer;
-	mesh_definition_t* def = display_gl_mesh_get_definiton(MESH_TYPE_VTC);
+	int32								i;
+	int8*								live_vertex_buffer = display->live_vertex_buffer;
+	mesh_definition_t* 	def = display_gl_mesh_get_definiton(MESH_TYPE_VTC);
+	uint8*							live_counter;
 
-	memset(vm->shadow, 0, VM_MEMORY_SIZE);
+	live_counter = (uint8*)display->io_read_buffer;
+
+	memset(live_counter, 0, display->memory_size);
+
 
 	display->live_count = 0;
 	for (i = 0; i < vm->process_count; ++i)
 	{
 		process_t* process = vm->processes[i];
 		int32 address = process->pc;
-		if ( (vm->shadow[address] < DISPLAY_MAX_LIVE_PER_ADDRESS) 
-			&& process->current_opcode 
+		if ( (live_counter[address] < DISPLAY_MAX_LIVE_PER_ADDRESS)
+			&& process->current_opcode
 			&& (process->current_opcode->opcode == HCORE_LIVE_OPCODE)) {
 			uint32 live_color = process->last_core_live->color_uint & 0xffffff;
 			v3_t	start, end;
 			// float size = LERP(0.0f, DISPLAY_CELL_SIZE * 2.0f, (float)(process->cycle_wait) / (float)process->current_opcode->cycles);
 			float size = DISPLAY_CELL_SIZE;
-			vm->shadow[address]++;
+			live_counter[address]++;
 			live_color |= 0x60000000;
 			display_gl_grid_get_position(display, process->pc, &start);
 
