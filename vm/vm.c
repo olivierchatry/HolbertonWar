@@ -122,7 +122,6 @@ void vm_destroy_process(vm_t* vm, process_t* process) {
 process_t*	vm_add_core(vm_t* vm, core_t* core, int32 offset) {
 	int8* core_code = core_get_code_ptr(core);
 	process_t* process = NULL;
-
 	if (vm->core_count < VM_MAX_CORES) {
 		memcpy(vm->memory + offset, core_code, core->header->code_size);
 		process = vm_create_process(vm, NULL, offset);

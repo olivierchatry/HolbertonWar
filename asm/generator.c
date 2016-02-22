@@ -4,6 +4,35 @@
 #include "asm.h"
 #include "../common/utils.h"
 
+
+int32 generator_int32(generator_t* generator, int32 value) {
+	if (generator->write_big_endian != generator->is_cpu_big_endian) {
+		int32_bytes_t e = {value};
+		int32_bytes_t p = {0};
+
+		p.c[0] = e.c[3];
+		p.c[1] = e.c[2];
+		p.c[2] = e.c[1];
+		p.c[3] = e.c[0];
+
+		return p.i;
+	}
+	return value;
+}
+
+int32 generator_int16(generator_t* generator, int32 value) {
+	if (generator->write_big_endian != generator->is_cpu_big_endian) {
+		int16_bytes_t e = {value};
+		int16_bytes_t p = {0};
+
+		p.c[0] = e.c[1];
+		p.c[1] = e.c[0];
+
+		return p.i;
+	}
+	return value;
+}
+
 void generator_allocate(generator_t* generator) {
 	generator->byte_code_max_size += 4096;
 	generator->byte_code = (char*)realloc(generator->byte_code, generator->byte_code_max_size);

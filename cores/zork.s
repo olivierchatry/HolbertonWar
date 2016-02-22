@@ -12,6 +12,7 @@ and r1,%0,r1
 live: live %1
 zjmp %:live
 
+.code 0b 68 01 00 0f 00 01
 # compiled executable :
 #
 # 0x0b,0x68,0x01,0x00,0x0f,0x00,0x01

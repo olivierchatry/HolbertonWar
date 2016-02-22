@@ -47,6 +47,7 @@ void 			generator_destroy(generator_t* generator);
 int8*			generator_write32(generator_t* generator, int32 to_write);
 int8*			generator_write16(generator_t* generator, int16 to_write);
 int8*			generator_write8(generator_t* generator, int8 to_write);
+int32 		generator_int32(generator_t* generator, int32 value);
 
 label_t* 	label_create(char* name, int32 offset, int32 opcode_offset);
 label_t* 	label_forward_create(char* name, int32 offset, int32 opcode_offset, int32 type, int32 line);
