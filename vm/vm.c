@@ -102,6 +102,7 @@ process_t*	vm_create_process(vm_t* vm, process_t* parent, int32 pc) {
 	process->cycle_live = vm->cycle_total;
 	process->memory_write_op_count = 0;
 	process->memory_read_op_count = 0;
+	process->current_opcode = NULL;
 	// new process always wait 1 more cycles.
 	process->cycle_wait ++;
 
@@ -217,14 +218,15 @@ int 				vm_check_opcode(vm_t* vm, process_t* process, int* args, int* regs, int*
 			}
 			else {
 				int8 reg = memory_read8(vm->memory, pc, &process->core->bound, NULL);
-				if (reg <= 0 || reg > CORE_REGISTER_COUNT)
+				if (reg <= 0 || reg > CORE_REGISTER_COUNT) {
 					return VM_ERROR_REGISTER;
+				}
 				args[i] = process->reg[reg - 1];
 				regs[i] = reg - 1;
 				pc++;
 			}
-			types++;
 			pc = memory_bound(pc, &process->core->bound);
+			types++;
 		}
 		process->next_pc = pc;
 		return VM_OK;
@@ -260,7 +262,8 @@ int 				vm_execute(vm_t* vm, process_t* process) {
 	pc = process->pc = process->next_pc;
 	opcode_t* op = vm_get_opcode(vm, process);
 	int32	ret = vm_check_opcode(vm, process, args, regs, types, (op->processing_flags & ASM_PROCESSING_NO_MOD) ? VM_MEMORY_SIZE : VM_MEMORY_MODULO);
-
+	//list_add(&process->stack, op);
+	
 	if (ret == VM_OK) {
 		switch(op->opcode) {
 		case HCORE_ADD_OPCODE:
@@ -288,7 +291,7 @@ int 				vm_execute(vm_t* vm, process_t* process) {
 				addr = pc + args[0] % VM_MEMORY_MODULO;
 				process->next_pc = memory_bound(addr, &process->core->bound);
 				process->jump_from = pc;
-				process->jump_to = addr;
+				process->jump_to = process->next_pc;
 			}
 			break;
 		case HCORE_LLD_OPCODE:
@@ -308,6 +311,10 @@ int 				vm_execute(vm_t* vm, process_t* process) {
 			addr = pc + args[0] % VM_MEMORY_MODULO;
 			vm_create_process(vm, process, memory_bound(addr, &process->core->bound));
 			break;
+		case HCORE_LFORK_OPCODE:
+			addr = pc + args[0] % VM_MEMORY_SIZE;
+			vm_create_process(vm, process, memory_bound(addr, &process->core->bound));
+			break;
 		case HCORE_LIVE_OPCODE:
 			process->cycle_live = vm->cycle_total;
 			vm_live(vm, process, args[0]);
@@ -318,7 +325,7 @@ int 				vm_execute(vm_t* vm, process_t* process) {
 			process->zero = process->reg[regs[2]] == 0;
 			break;
 		case HCORE_LLDI_OPCODE:
-			addr = pc + (args[0] + args[1]) % VM_MEMORY_SIZE;
+			addr = pc + (args[0] + args[1]);
 			process->reg[regs[2]] = memory_read32(vm->memory, addr, &process->core->bound, &process->memory_callback);
 			process->zero = process->reg[regs[2]] == 0;
 			break;
@@ -340,6 +347,11 @@ int 				vm_execute(vm_t* vm, process_t* process) {
 	}
 
 	if (ret != VM_OK) {
+		//list_t* stack = process->stack;
+		//while (stack) {
+		//	printf("%s\n", ((opcode_t*)stack->data)->mnemonic);
+		//	stack = stack->next;
+		//}
 		process->next_pc = memory_bound(process->pc + 1, &process->core->bound);
 	}
 

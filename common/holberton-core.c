@@ -1,5 +1,6 @@
 #include "holberton-core.h"
 
+/*
 #define HCORE_LIVE_CYCLES			5
 #define HCORE_LD_CYCLES				5
 #define HCORE_ST_CYCLES				2
@@ -12,6 +13,25 @@
 #define HCORE_LDI_CYCLES			25
 #define HCORE_STI_CYCLES			2
 #define HCORE_FORK_CYCLES			600
+#define HCORE_LLD_CYCLES			10
+#define HCORE_LLDI_CYCLES			50
+#define HCORE_LFORK_CYCLES		1000
+#define HCORE_AFF_CYCLES			2
+#define HCORE_GTMD_CYCLES			5
+*/
+
+#define HCORE_LIVE_CYCLES			10
+#define HCORE_LD_CYCLES				5
+#define HCORE_ST_CYCLES				5
+#define HCORE_ADD_CYCLES			10
+#define HCORE_SUB_CYCLES			10
+#define HCORE_AND_CYCLES			6
+#define HCORE_OR_CYCLES				6
+#define HCORE_XOR_CYCLES			6
+#define HCORE_ZJMP_CYCLES			20
+#define HCORE_LDI_CYCLES			25
+#define HCORE_STI_CYCLES			25
+#define HCORE_FORK_CYCLES			800
 #define HCORE_LLD_CYCLES			10
 #define HCORE_LLDI_CYCLES			50
 #define HCORE_LFORK_CYCLES		1000
