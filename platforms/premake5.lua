@@ -57,7 +57,7 @@ workspace "HolbertonWar"
 			else
 				libdirs "../externals/glfw/lib/linux/x86"
 			end
-			links {"glfw3", "X11", "Xxf86vm", "Xrandr", "Xi", "GL", "pthread", "m", "ncurses", "dl"}
+			links {"glfw3", "X11", "Xxf86vm", "Xrandr", "Xi", "GL", "pthread", "m", "dl"}
 
 		filter "system:macosx"
 			platforms 	{"Universal"}
