@@ -24,6 +24,7 @@
 #define DISPLAY_MAX_LIVE_PER_ADDRESS		8
 #define DISPLAY_MAX_PROCES_PER_ADDRESS	8
 #define DISPLAY_MAX_JUMP_PER_CORE				100
+
 typedef struct display_gl_s
 {
 	GLFWwindow*	window;
@@ -77,11 +78,12 @@ typedef struct display_gl_s
 	double		frame_last_time;
 	double		frame_delta;
 
+	display_gl_mesh_renderer_t*	mesh_renderer;
+
 	mesh_t*										live_mesh;
 	uint32										live_count;
 	int8*											live_vertex_buffer;
 
-	display_gl_mesh_renderer_t*	mesh_renderer;
 	mesh_t*										process_mesh;
 
 	mesh_t*										jump_mesh;
@@ -92,6 +94,9 @@ typedef struct display_gl_s
 	display_gl_text_t*				texts;
 
 	float											dpi_text_scale;
+
+	mesh_t*										sky_box;
+	GLuint										sky_box_texture;
 } display_gl_t;
 
 #endif

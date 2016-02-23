@@ -174,9 +174,9 @@ int main(int ac, char** av) {
 		if (vm->cycle_current > vm->cycle_to_die) {
 			vm->cycle_current = 0;
 			vm_kill_process_if_no_live(vm);
+			vm_clean_dead_process(vm);
 		}
 
-		vm_clean_dead_process(vm);
 
 	#ifdef RENDER_GL
 		if (display_gl_update_input(display) || update_display)

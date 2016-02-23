@@ -161,6 +161,7 @@ mesh_t* display_gl_mesh_vtc_create(void* vertices, int32 vertex_count, uint16* i
 		mesh->ib = display_gl_create_buffer(GL_ELEMENT_ARRAY_BUFFER, index_count * sizeof(uint16), GL_STATIC_DRAW, indices);
 	}
 	else {
+		mesh->count = vertex_count;
 		mesh->ib = 0;
 	}
 	mesh->vao = display_gl_create_vao();

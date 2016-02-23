@@ -3,7 +3,6 @@ dofile "premake-utils.lua"
 os.mkdir("../build")
 os.mkdir("../build/bin")
 os.copydir("../vm/display/gl/data", "../build/bin/data")
-os.copyfile("../externals/glfw/3.1.2/lib/windows/x86_64/glfw3.dll", "../build/bin/glfw3.dll")
 
 local action = _ACTION or ""
 
@@ -74,7 +73,7 @@ workspace "HolbertonWar"
 
 
 		filter "system:windows"
-			os.copyfile("../externals/glfw/3.1.2/lib/windows/x86_64/glfw3.dll", "../build/glfw3.dll")
+			os.copyfile("../externals/glfw/3.1.2/lib/windows/x86_64/glfw3.dll", "../build/bin/glfw3.dll")
 			architecture ("x86_64")
 			libdirs "../externals/glfw/3.1.2/lib/windows/x86_64"
 			includedirs "../externals/glfw/3.1.2/include"

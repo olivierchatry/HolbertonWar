@@ -164,7 +164,7 @@ void generate_code(generator_t* generator, char* hex_string) {
 			start = hex_string;
 		} else if (*hex_string == ' ' && start != NULL) {
 			*hex_string = 0;
-			generator_write8(generator, strtoll(start, &end, 16));
+			generator_write8(generator, (int8) strtoll(start, &end, 16));
 			if (*end != 0) {
 				generator->error = ASM_INVALID_NUMBER;
 			}

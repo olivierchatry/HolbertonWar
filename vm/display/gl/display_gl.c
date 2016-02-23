@@ -17,7 +17,7 @@
 #include "display_gl_live.h"
 #include "display_gl_jump.h"
 #include "display_gl_process.h"
-
+#include "display_gl_sky.h"
 
 float	display_gl_text(display_gl_t* display, float x, float y, int32 rgba, char* format, ...) {
 	va_list args;
@@ -117,6 +117,7 @@ display_gl_t* display_gl_initialize(int width, int height, int full_screen) {
 	display_gl_live_init(display);
 	display_gl_process_init(display);
 	display_gl_jump_init(display);
+	display_gl_sky_init(display);
 
 	display->texts = display_gl_text_intialize();
 
@@ -152,6 +153,7 @@ void display_gl_destroy(display_gl_t* display) {
 	display_gl_jump_destroy(display);
 	display_gl_process_destroy(display);
 	display_gl_grid_destroy(display);
+	display_gl_sky_destroy(display);
 	display_gl_text_destroy(display->texts);
 
 	display_gl_mesh_renderer_destroy(display->mesh_renderer);
@@ -248,7 +250,7 @@ void display_gl_camera_update(display_gl_t* display) {
 		display->display_gl_center_x + width,
 		display->display_gl_center_y + height,
 		display->display_gl_center_y - height,
-		-1000.0f, 1000.0f);
+		-10000.0f, 10000.0f);
 }
 
 void display_gl_texts(struct vm_s* vm, display_gl_t* display) {
@@ -266,10 +268,15 @@ void display_gl_step(struct vm_s* vm, display_gl_t* display) {
 	display_gl_camera_update(display);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	display_gl_sky_render(vm, display);
+
+	glCullFace(GL_BACK);
 	glEnable(GL_BLEND);
 	glDisable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 
 	display_gl_memory_update(vm, display);
 	display_gl_memory_render(vm, display);

@@ -146,7 +146,6 @@ void vm_clean_dead_process(vm_t* vm) {
 		if (vm->processes[previous]->free == 0) {
 			vm->processes[current++] = vm->processes[previous];
 		}
-
 	}
 	vm->process_count = current;
 }

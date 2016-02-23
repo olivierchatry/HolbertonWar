@@ -18,4 +18,7 @@ int8* display_gl_generate_rect(v3_t* min, v3_t* max, uint32 color, int8* vb, mes
 void display_gl_generate_arrow_count(int32* vertex_count);
 int8* display_gl_generate_arrow(v3_t* min, v3_t* max, float size, uint32 color, int8* vb, mesh_definition_t* def);
 
+void display_gl_generate_box_count(int32* vertex_count);
+int8* display_gl_generate_box(v3_t* min, v3_t* max, float uv_repeat, uint32 color, int8* vb, mesh_definition_t* def);
+
 #endif
