@@ -30,131 +30,185 @@ Each core is a binary file that contains a bunch of instructions. These instruct
 
 ## building project
 	1. git clone the repository to your local computer
-	2. got to in the local repository folder
-	3. got to "platforms" folder
-	4. depending on your OS :
+	2. go to the local repository folder
+	3. git submodule init && git submodule update
+	4. go to "platforms" folder
+	5. depending on your OS :
 		* linux 	: ./premake5.linux gmake
 		* osx   	: ./premake5.osx gmake
 		* windows : premake5.exe vs2015 ( or vs2013 etc. )
 		be sure to check that the binary have exec right ( chmod +x )
-	5. got to folder "build", from the local repository folder
-	6. on linux, osx, execute "make", this should create the binary ( in bin/Debug or bin/Release)
-	7. on windows, open HolbertonWar.sln
+	6. got to folder "build", from the local repository folder
+	7. on linux, osx, execute "make", this should create the binary ( in same folder )
+	8. on windows, open HolbertonWar.sln
 
 ## instructions set
 
-### add
+> **If not said so, all addresses are modulo 512.**
 
-	in(register|immediate) value
-	in(register|immediate) value
-	out(register) where to write the result
-
-execute an **add** between in(1) and in(2), put the result in out(1)
-```
-	out(1) = in(1) + in(2)
-```
-### sub
-
-	in(register|immediate) value
-	in(register|immediate) value
-	out(register) where to write the result
-
-execute a **sub** between in(1) and in(2), put the result in out(1)
-```
-	out(1) = in(1) - in(2)
-```
-### and
-
-	*	in(register|immediate) value
-	* in(register|immediate) value
-	* out(register) where to write the result
-
-execute a **and** between in(1) and in(2), put the result in out(1)
-```
-	out(1) = in(1) & in(2)
-```
-### or
-
-	in(register|immediate) value
-	in(register|immediate) value
-	out(register) where to write the result
-
-execute a **or** between in(1) and in(2), put the result in out(1)
-```
-	out(1) = in(1) | in(2)
-```
-### xor
-
-	in(register|immediate) value
-	in(register|immediate) value
-	out(register) where to write the result
-
-execute a **xor** between in(1) and in(2), put the result in out(1)
-```
-		out(1) = in(1) ^ in(2)
-```
-
-### jnz
-
-	in(immediate) offset of the jump
-
-add in(1) to caller PC **if** zero flag set to 1.
-
-
-### jmp
-
-	in(immediate) offset of the jump
-
-add in(1) to caller PC.
-
-
-### ld
-
-	in(immediate|address|register) value to read.
-	out(register) which register to put the read value.
-
-
-Load value at address PC + in(1) from memory to out(1) register.
-Modify zero flag.
-
-### st
-
-	in(register) which register contains the value to write
-	out(register|immediate) where to write.
-
-Store in(1) register value to PC+out(1) address in memory.
-Modify zero flag.
-
-### fork
-
-	in(immediate) offset to add to caller PC
-
-Create a new process, copying the registers and flags from the caller, the new process PC is caller PC + in(1)
-
-### die
-
-The process that execute this commands dies.
+> **Address are 16bits wide**
+> **Immediate are 32bits wide**
+> **Register are 32bits wide**
 
 ### live
-
+```
 	in(immediate) core id
+```
+* **Does not have an argument coding byte**.
+* Reset the number of cycles until the process dies, set the live counter for core if to the current cycle.
+* Cycles : 10
 
-Reset the number of cycles until the process dies, set the live counter for core if to the current cycle.
+### ld
+```
+	in(immediate|address) value to read.
+	out(register) which register to put the read value.
+```
+* Load value at address PC + in(1) from memory to out(1) register.
+* Modify zero flag.
+* cycles : 5
+
+### st
+```
+	in(register) which register contains the value to write
+	out(register|address) where to write.
+```
+* Store in(1) register value to PC+out(1) address in memory.
+* cycles : 5
+
+### add
+```
+	in(register) value
+	in(register) value
+	out(register) where to write the result
+```
+* execute an **add** between in(1) and in(2), put the result in out(1)
+* Modify zero flag.
+* cycles : 10
+
+### sub
+```
+	in(register) value
+	in(register) value
+	out(register) where to write the result
+```
+* execute a **sub** between in(1) and in(2), put the result in out(1)
+* Modify zero flag.
+* cycles : 10
+
+### and
+```
+	in(register|immediate|address) value
+	in(register|immediate|address) value
+	out(register) where to write the result
+```
+
+* execute a **and** between in(1) and in(2), put the result in out(1)
+* Modify zero flag.
+* cycles : 6
+
+### or
+```
+	in(register|immediate|address) value
+	in(register|immediate|address) value
+	out(register) where to write the result
+```
+* execute a **or** between in(1) and in(2), put the result in out(1)
+* Modify zero flag.
+* cycles : 6
+
+### xor
+```
+	in(register|immediate|address) value
+	in(register|immediate|address) value
+	out(register) where to write the result
+```
+* execute a **xor** between in(1) and in(2), put the result in out(1)
+* Modify zero flag.
+* cycles : 6
+
+### jnz
+```
+	in(immediate) offset of the jump
+```
+* **Does not have an argument coding byte**.
+* add in(1) to caller PC **if** zero flag set to 1.
+* argument is an address size.
+* cycles : 20
 
 ### ldi
-
+```
 	in(immediate|address|register) address of value to read.
 	in(immediate|register) offset to add in(1)
 	out(register) which register to put the read value.
-
-Load value at address PC + in(1) + in(2) from memory, write to out(1) register.
-Modify zero flag.
+```
+* Load value at address PC + in(1) + in(2) from memory, write to out(1) register.
+* Modify zero flag.
+* All values are address size.
+* cycles : 25
 
 ### sti
-
+```
 	in(register) which register contains the value to write
 	out(immediate|address|register) address of where to write.
 	out(immediate|register) offset to add out(1)
+```
+* Store in(1) register value to PC+out(1)+out(2) address in memory.
+* All values are address size.
+* cycles : 25
 
-Store in(1) register value to PC+out(1)+out(2) address in memory.
-Modify zero flag.
+### fork
+```
+	in(immediate) offset to add to caller PC
+```
+* **Does not have an argument coding byte**.
+* Create a new process, copying the registers and flags from the caller, the new process PC is *caller* PC + in(1)
+* Values are address size.
+* cycles : 800
+
+## lld
+```
+	in(immediate|address) value to read.
+	out(register) which register to put the read value.
+```
+* Load value at address PC + in(1) from memory to out(1) register.
+* Address are **not** modulo 512.
+* Modify zero flag.
+* cycles : 10
+
+
+## lldi
+```
+	in(immediate|address|register) address of value to read.
+	in(immediate|register) offset to add in(1)
+	out(register) which register to put the read value.
+```
+* Load value at address PC + in(1) + in(2) from memory, write to out(1) register.
+* Address are **not** modulo 512.
+* Modify zero flag.
+* All values are address size.
+* cycles : 50
+
+### lfork
+```
+	in(immediate) offset to add to caller PC
+```
+* **Does not have an argument coding byte**.
+* Create a new process, copying the registers and flags from the caller, the new process PC is *caller* PC + in(1)
+* Values are address size.
+* Address are **not** modulo 512.
+* cycles : 1000
+
+### aff
+```
+	in(register) value to display
+```
+* Display the ASCII character in(1) in console.
+* cycles : 2
+
+### gtmd
+```
+	in(register) which register to put the value in
+```
+* Put the remaining cycles before the memory barrier open into in(1).
+* Modify zero flag.
+* cycles : 5

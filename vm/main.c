@@ -168,8 +168,7 @@ int main(int ac, char** av) {
 				update_display = 1;
 			}
 		}
-		// printf("cycle %d, process count %d, live count %d, cycle to die %d\n", vm->cycle_total, vm->process_count, vm->live_count, vm->cycle_to_die);
-		/*clear_console();*/
+
 		if (vm->cycle_current > vm->cycle_to_die) {
 			vm->cycle_current = 0;
 			vm_kill_process_if_no_live(vm);
