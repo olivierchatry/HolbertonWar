@@ -77,9 +77,10 @@ int parse_arguments(vm_t* vm, int ac, char** av) {
 }
 
 int	 check_core_endianess(vm_t* vm) {
+	int i;
 	if (vm->core_count > 1) {
 		int big_endian = vm->cores[1]->is_big_endian;
-		for (int i = 2; i < vm->core_count; ++i) {
+		for (i = 2; i < vm->core_count; ++i) {
 			if (big_endian != vm->cores[i]->is_big_endian) {
 				fprintf(stderr, "cores endianess mismatch, all cores should use same endianess.\n");
 				for (i = 1; i < vm->core_count; ++i) {
@@ -119,6 +120,7 @@ int main(int ac, char** av) {
 	vm_t*					vm;
 	display_gl_t*	display = NULL;
 	int						bound;
+	int						i;
 	debugger_t*		debugger = NULL;
 
 	vm = vm_initialize();
@@ -127,7 +129,7 @@ int main(int ac, char** av) {
 	}
 
 	bound = VM_MEMORY_SIZE / (vm->core_count - 1);
-	for (int i = 0; i < vm->core_count; ++i) {
+	for (i = 0; i < vm->core_count; ++i) {
 		vm->cores[i]->bound.start = vm->cores[i]->start_address;
 		vm->cores[i]->bound.size = bound;
 	}
@@ -185,7 +187,7 @@ int main(int ac, char** av) {
 			y = display_gl_text(display, 0, y, 0xffffffff, "process count  %d ", vm->process_count);
 			y = display_gl_text(display, 0, y, 0xffffffff, "cycle          %d ", vm->cycle_total);
 			y = display_gl_text(display, 0, y, 0xffffffff, "barrier        %d ", vm->cycle_barrier);
-			for (int i = 0; i < vm->core_count; ++i) {
+			for (i = 0; i < vm->core_count; ++i) {
 				core_t* core = vm->cores[i];
 				char* name = core->header ? core->header->name : "Unknow";
 				y = display_gl_text(display, 0, y, 0xffffffff, "%s %d", name, core->live_count);

@@ -1,12 +1,16 @@
 dofile "premake-utils.lua"
 
 os.mkdir("../build")
-os.copydir("../vm/display/gl/data", "../build/data")
-os.copyfile("../externals/glfw/3.1.2/lib/windows/x86_64/glfw3.dll", "../build/glfw3.dll")
+os.mkdir("../build/bin")
+os.copydir("../vm/display/gl/data", "../build/bin/data")
+os.copyfile("../externals/glfw/3.1.2/lib/windows/x86_64/glfw3.dll", "../build/bin/glfw3.dll")
+
+local action = _ACTION or ""
 
 workspace "HolbertonWar"
-	location 		("../build")
-	targetdir		("../build")
+	location 		("../build/" .. action)
+	targetdir		("../build/bin")
+
   configurations {"Debug", "Release"}
 	defines { "GLEW_STATIC", "GLM_FORCE_RADIANS" }
 
@@ -85,7 +89,6 @@ workspace "HolbertonWar"
 
 
 	project "asm"
-    debugdir "../cores"
     kind "ConsoleApp"
     language "C"
     files { "../asm/**.h", "../asm/**.c" }

@@ -1,0 +1,22 @@
+language: cpp
+
+os:
+  - linux
+  - osx
+
+
+before_install:
+  - if [ $TRAVIS_OS_NAME == linux ]; then sudo add-apt-repository -y ppa:pyglfw/pyglfw && sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends libglfw3-dev libxrandr-dev libxi-dev libxxf86vm-dev; fi
+  - if [ $TRAVIS_OS_NAME == linux ]; then git clone --recursive https://github.com/premake/premake-core.git && cd premake-core && make -f Bootstrap.mak $TRAVIS_OS_NAME && cp bin/release/premake5 ../platforms/premake5.linux && cd ..; fi
+
+install:
+  - git submodule update --init --recursive
+  - if [ $TRAVIS_OS_NAME == linux ]; then  cd platforms && ./premake5.linux gmake && cd ..; fi
+  - if [ $TRAVIS_OS_NAME == osx ]; then  cd platforms && ./premake5.osx gmake && cd ..; fi
+
+script:
+  - make -C build/gmake vm config=release
+  - make -C build/gmake asm config=release
+
+notifications:
+  email: false

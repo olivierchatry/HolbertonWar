@@ -1,3 +1,7 @@
+[![Build status](https://ci.appveyor.com/api/projects/status/motlasbbysk0cl0o?svg=true)](https://ci.appveyor.com/project/olivierchatry/holbertonwar)
+
+[![Build Status](https://travis-ci.org/olivierchatry/HolbertonWar.svg)](https://travis-ci.org/olivierchatry/HolbertonWar)
+
 # Holberton War, yet another corewar !
 ## What is it ?
 A *corewar* is a game, where *processes* fight to make their *core* win. They fight using a *virtual machine*, where each processes are executed on the same *shared* memory. To win, each core will have to destroy the other cores processes, by making them execute a given instruction.

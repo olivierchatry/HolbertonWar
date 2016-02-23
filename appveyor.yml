@@ -1,0 +1,24 @@
+os:
+  - Visual Studio 2015
+
+environment:
+  matrix:
+    - TOOLSET: vs2015
+
+install:
+  - git submodule update --init --recursive
+  - cd platforms && premake5.exe %TOOLSET% && cd ..
+
+configuration: Release
+
+build:
+  project: build/$(TOOLSET)/HolbertonWar.sln
+
+after_build:
+  - cd build/bin && 7z a ../../HolbertonWar.zip -r *.* && cd ../..
+  - 7z a HolbertonWar.zip -r cores/*.*
+
+artifacts:
+  - path: HolbertonWar.zip
+    name: binary
+    type: zip
