@@ -54,14 +54,17 @@ void display_gl_process_update(struct vm_s* vm, struct display_gl_s* display) {
 
 
 void display_gl_process_render(struct vm_s* vm, struct display_gl_s* display) {
-	v4_t	color_io_process;
-	v4_t	color_ambient;
-	v3_t	light_direction;
+	v4_t		color_io_process;
+	v4_t		color_ambient;
+	v3_t		light_direction;
 	mat4_t	local;
 	mat4_t	translate;
 	mat4_t	rotation;
 	quat_t	quat;
-	int		i;
+	int			i;
+	uint8*	process_counter;
+
+	process_counter = (uint8*)display->io_read_buffer;
 
 	v4_set(&color_io_process, 0.4f, 0.4f, 1.0f, 0.0f);
 	v4_set(&color_ambient, 0.2f, 0.2f, 0.2f, 1.0f);
@@ -75,18 +78,23 @@ void display_gl_process_render(struct vm_s* vm, struct display_gl_s* display) {
 	display_gl_mesh_set_projection(display->mesh_renderer, &display->projection_view);
 	mat4_ident(&local);
 
+	memset(process_counter, 0, display->memory_size);
+
 	for (i = 0; i < vm->process_count; ++i)
 	{
 		process_t* process = vm->processes[i];
 		int index = process->pc;
 
-		if (vm->shadow[index] < DISPLAY_MAX_PROCES_PER_ADDRESS) {
-			process->angle += (float)display->frame_delta;
+		if (process_counter[index] < DISPLAY_MAX_PROCES_PER_ADDRESS) {
 			mat4_t normal;
+			v4_t*	 color = (v4_t*)process->core->color;
+			
+			process->angle += (float)display->frame_delta;
+
 			float x = (float)(index % display->memory_stride);
 			float y = (float)(index / display->memory_stride);
 
-			vm->shadow[index]++;
+			process_counter[index]++;
 
 			x = x * DISPLAY_CELL_SIZE + DISPLAY_CELL_SIZE * 0.5f;
 			y = y * DISPLAY_CELL_SIZE + DISPLAY_CELL_SIZE * 0.5f;
@@ -100,6 +108,7 @@ void display_gl_process_render(struct vm_s* vm, struct display_gl_s* display) {
 			mat4_transpose(&normal, &normal);
 			mat4_mul(&translate, &rotation, &local);
 
+			display_gl_mesh_set_diffuse(display->mesh_renderer, color);
 			display_gl_mesh_set_local(display->mesh_renderer, &local);
 			display_gl_mesh_set_normal(display->mesh_renderer, &normal);
 

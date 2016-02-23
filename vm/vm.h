@@ -2,6 +2,7 @@
 #define __VM_H__
 
 #include "../common/holberton-core.h"
+#include "../common/list.h"
 #include "core.h"
 
 #define TYPE(v, a) ((v >> (6 - a * 2)) & 3)
@@ -47,14 +48,13 @@ typedef struct process_s
 	memory_callback_t memory_callback;
 
 	float					angle;
-
+	list_t*				stack;
 } process_t;
 
 
 typedef struct vm_s
 {
 	int8*		memory;
-	int8*		shadow;
 	int32		memory_size;
 	int32		memory_modulo;
 	int32		live_count;
