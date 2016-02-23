@@ -213,7 +213,11 @@ int 				vm_check_opcode(vm_t* vm, process_t* process, int* args, int* regs, int*
 			else if (*types == OP_ARG_TYPE_ADD) {
 				regs[i] = memory_read16(vm->memory, pc, &process->core->bound, NULL);
 				args[i] = process->pc + regs[i] % modulo;
-				args[i] = memory_read32(vm->memory, args[i], &process->core->bound, &process->memory_callback);
+				if (process->current_opcode->processing_flags & ASM_PROCESSING_IMM_AS_ADD) {
+					args[i] = memory_read16(vm->memory, args[i], &process->core->bound, &process->memory_callback);
+				} else {
+					args[i] = memory_read32(vm->memory, args[i], &process->core->bound, &process->memory_callback);
+				}
 				pc += 2;
 			}
 			else {
@@ -263,7 +267,7 @@ int 				vm_execute(vm_t* vm, process_t* process) {
 	opcode_t* op = vm_get_opcode(vm, process);
 	int32	ret = vm_check_opcode(vm, process, args, regs, types, (op->processing_flags & ASM_PROCESSING_NO_MOD) ? VM_MEMORY_SIZE : VM_MEMORY_MODULO);
 	//list_add(&process->stack, op);
-	
+
 	if (ret == VM_OK) {
 		switch(op->opcode) {
 		case HCORE_ADD_OPCODE:
