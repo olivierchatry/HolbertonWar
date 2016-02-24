@@ -22,7 +22,7 @@ void display_gl_sky_init(struct display_gl_s* display) {
 	display_gl_generate_box_count(&vertices_count);
 	def = display_gl_mesh_get_definiton(MESH_TYPE_VTC);
 	vb = malloc(def->stride * vertices_count);
-	display_gl_generate_box(&min, &max, 4.0f, 0xffffffff, vb, def);
+	display_gl_generate_box(&min, &max, 8.0f, 0xffffffff, vb, def);
 	display->sky_box = display_gl_mesh_vtc_create(vb, vertices_count, NULL, 0);
 	free(vb);
 }
@@ -38,21 +38,18 @@ void display_gl_sky_render(struct vm_s* vm, struct display_gl_s* display) {
 	mat4_t							projection;
 
 	quat_t							quat;
-	static float				angle = 0;
 
-
-	
 
 	v4_set(&color_diffuse, 1.f, 1.f, 1.0f, 1.0f);
 	v4_set(&color_ambient, 0.0f, 0.0f, 0.0f, 0.0f);
-	angle += (float) display->frame_delta / 10.f;
-	
+	display->sky_box_angle += (float) display->frame_delta / 20.f;
 
-	quat_from_euler(&quat, angle, angle, 0.0f);
+	quat_from_euler(&quat, display->sky_box_angle, display->sky_box_angle, 0.0f);
 	quat_to_mat4(&quat, &local);
-	// mat4_mul(&translate, &rotation, &local);
+
 	mat4_ident(&projection);
-	mat4_ortho(&projection, -0.5f, 0.5f, 0.5f, -0.5f, -10.0f, 0.0f);
+	mat4_perspective(&projection, 70.0f, display->frame_buffer_ratio,-10.0f, 0.0f);
+	// mat4_ortho(&projection, -0.5f, 0.5f, 0.5f, -0.5f, -10.0f, 0.0f);
 
 	glDisable(GL_DEPTH_TEST);
 	glDepthMask(GL_FALSE);

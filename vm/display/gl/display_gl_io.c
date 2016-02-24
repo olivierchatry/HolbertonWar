@@ -23,7 +23,7 @@ void display_gl_io_init(struct display_gl_s* display) {
 	display->io_uniform_projection_matrix = glGetUniformLocation(display->io_shader.id, "uni_ProjectionMatrix");
 	display->io_uniform_color = glGetUniformLocation(display->io_shader.id, "uni_Color");
 	display->io_uniform_texture = glGetUniformLocation(display->io_shader.id, "uni_Texture");
-	
+
 	glUseProgram(display->io_shader.id);
 	GLint		samplerId = 0;
 	glUniform1iv(display->io_uniform_texture, 1, &samplerId);
@@ -72,6 +72,11 @@ void display_gl_io_render(struct vm_s* vm, struct display_gl_s* display) {
 			}
 		}
 
+		glCullFace(GL_BACK);
+		glEnable(GL_BLEND);
+		glDisable(GL_DEPTH_TEST);
+		glDepthMask(GL_TRUE);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		glBindBuffer(GL_ARRAY_BUFFER, display->memory_vertex_buffer);
 		glBufferSubData(GL_ARRAY_BUFFER, 0, display->memory_size * 4, display->io_read_buffer);

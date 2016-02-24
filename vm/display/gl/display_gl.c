@@ -77,7 +77,7 @@ display_gl_t* display_gl_initialize(int width, int height, int full_screen) {
 
 	int widthMM, heightMM;
 	glfwGetMonitorPhysicalSize(monitor, &widthMM, &heightMM);
-	
+
 	const GLFWvidmode* mode = glfwGetVideoMode(monitor);
 
 	const float dpi = (float) mode->width / ((float) widthMM / 25.4f);
@@ -270,12 +270,6 @@ void display_gl_step(struct vm_s* vm, display_gl_t* display) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	display_gl_sky_render(vm, display);
-
-	glCullFace(GL_BACK);
-	glEnable(GL_BLEND);
-	glDisable(GL_DEPTH_TEST);
-	glDepthMask(GL_TRUE);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 
 	display_gl_memory_update(vm, display);

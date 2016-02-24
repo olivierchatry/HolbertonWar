@@ -91,6 +91,12 @@ void display_gl_memory_update(struct vm_s* vm, display_gl_t* display) {
 void display_gl_memory_render(struct vm_s* vm, display_gl_t* display) {
 	float color_mem[] = { 0.4f, 0.4f, 0.8f, 1.0f };
 
+	glCullFace(GL_BACK);
+	glEnable(GL_BLEND);
+	glDisable(GL_DEPTH_TEST);
+	glDepthMask(GL_TRUE);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	glUseProgram(display->memory_shader.id);
 	glUniformMatrix4fv(display->memory_uniform_projection_matrix, 1, GL_FALSE, display->projection_view.mat.v);
 	glUniform4fv(display->memory_uniform_color, 1, color_mem);

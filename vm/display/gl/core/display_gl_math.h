@@ -47,13 +47,14 @@ void	quat_from_euler(quat_t* out, float yaw, float pitch, float rool);
 void	quat_normalize(quat_t* out);
 void	quat_to_mat4(quat_t* in, mat4_t* out);
 
-float	mat4_det(mat4_t* in);
-int		mat4_invert(mat4_t* in, mat4_t* out);
-void	mat4_ident(mat4_t* mat);
-void	mat4_ortho(mat4_t* mat, float l, float r, float b, float t, float n, float f);
-int		mat4_transpose(mat4_t* in, mat4_t* out);
-void	mat4_x_v3(mat4_t* mat, v3_t* src, v3_t* dst);
-void	mat4_translate(mat4_t* mat, float x, float y, float z);
+float		mat4_det(mat4_t* in);
+int			mat4_invert(mat4_t* in, mat4_t* out);
+void		mat4_ident(mat4_t* mat);
+void		mat4_ortho(mat4_t* mat, float l, float r, float b, float t, float n, float f);
+void		mat4_perspective(mat4_t* mat, float fovy, float aspect, float near, float far);
+int			mat4_transpose(mat4_t* in, mat4_t* out);
+void		mat4_x_v3(mat4_t* mat, v3_t* src, v3_t* dst);
+void		mat4_translate(mat4_t* mat, float x, float y, float z);
 mat4_t*	mat4_mul(mat4_t* mat, mat4_t* with, mat4_t* out);
 
 v3_t*	v3_set(v3_t* v, float x, float y, float z);

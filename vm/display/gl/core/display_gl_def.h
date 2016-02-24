@@ -97,6 +97,7 @@ typedef struct display_gl_s
 
 	mesh_t*										sky_box;
 	GLuint										sky_box_texture;
+	float											sky_box_angle;
 } display_gl_t;
 
 #endif
