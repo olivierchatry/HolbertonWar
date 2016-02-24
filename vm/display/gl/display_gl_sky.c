@@ -11,8 +11,9 @@
 void display_gl_sky_init(struct display_gl_s* display) {
 	int32								vertices_count;
 	mesh_definition_t*	def;
-	v3_t								min = { -1, -1, -1};
-	v3_t								max = { 1, 1, 1 };
+	const float					size = 0.2;
+	v3_t								min = { -size, -size, -size};
+	v3_t								max = { size, size, size };
 	int8*								vb;
 
 	display->sky_box_texture = display_gl_load_texture(TEXTURE("sky.png"));
@@ -42,13 +43,13 @@ void display_gl_sky_render(struct vm_s* vm, struct display_gl_s* display) {
 
 	v4_set(&color_diffuse, 1.f, 1.f, 1.0f, 1.0f);
 	v4_set(&color_ambient, 0.0f, 0.0f, 0.0f, 0.0f);
-	display->sky_box_angle += (float) display->frame_delta / 20.f;
+	display->sky_box_angle += (float) display->frame_delta / 70.f;
 
 	quat_from_euler(&quat, display->sky_box_angle, display->sky_box_angle, 0.0f);
 	quat_to_mat4(&quat, &local);
 
 	mat4_ident(&projection);
-	mat4_perspective(&projection, 70.0f, display->frame_buffer_ratio,-10.0f, 0.0f);
+	mat4_perspective(&projection, 70.0f, display->frame_buffer_ratio,-100.0f, 0.0f);
 	// mat4_ortho(&projection, -0.5f, 0.5f, 0.5f, -0.5f, -10.0f, 0.0f);
 
 	glDisable(GL_DEPTH_TEST);

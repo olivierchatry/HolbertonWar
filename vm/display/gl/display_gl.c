@@ -131,8 +131,8 @@ display_gl_t* display_gl_initialize(int width, int height, int full_screen) {
 		screen_memory_ratio = screen_memory_ratio_height;
 
 	display->display_gl_zoom = screen_memory_ratio;
-	display->display_gl_center_x = ((float)display->frame_buffer_width * 0.5f) * screen_memory_ratio;
-	display->display_gl_center_y = ((float)display->frame_buffer_height * 0.5f) * screen_memory_ratio;
+	display->display_gl_center_x = ((float)display->memory_width * 0.5f);
+	display->display_gl_center_y = ((float)display->memory_height * 0.5f);
 
 	display->frame_last_time = glfwGetTime();
 	glfwSetWindowUserPointer(display->window, (void*)display);
