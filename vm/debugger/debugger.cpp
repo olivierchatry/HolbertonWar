@@ -75,23 +75,23 @@ void debugger_update_processes(debugger_t *debugger, vm_t *vm) {
   debugger->processes_count = processes_count;
 }
 
-void disasm(debugger_t* debugger, vm_t* vm, process_t* process) {
+void disasm(debugger_t* debugger, vm_t* vm, process_t* process, int instructions_count) {
 	int pc = process->pc;
 	int i, j;
 	bound_t bound;
-	
+
 	bound.start = 0;
 	bound.size = VM_MEMORY_SIZE;
 
 
 	*debugger->disasm = 0;
-	for (i = 0; i < 10; ++i) {
+	for (i = 0; i < instructions_count; ++i) {
 		int8			opcode;
 		int8			types;
-		int32			val;
+		long			val;
 		char			number[16];
 		opcode_t* instruction;
-		
+
 		opcode = vm->memory[pc++ % VM_MEMORY_SIZE];
 		instruction = holberton_core_get_opcodes();
 		while ((instruction->opcode != 0) && (instruction->opcode != opcode))
@@ -113,8 +113,8 @@ void disasm(debugger_t* debugger, vm_t* vm, process_t* process) {
 				int8 type = TYPE(types, j);
 				if (type == CORE_ARG_TYPE_REG) {
 					val = vm->memory[pc++ % VM_MEMORY_SIZE] + 1;
-					strcat(debugger->disasm, "r"); 
-					
+					strcat(debugger->disasm, "r");
+
 				} else if (type == CORE_ARG_TYPE_IMM) {
 					strcat(debugger->disasm, "%");
 					if (instruction->processing_flags & ASM_PROCESSING_IMM_AS_ADD) {
@@ -127,16 +127,16 @@ void disasm(debugger_t* debugger, vm_t* vm, process_t* process) {
 
 				if (type == CORE_ARG_TYPE_ADD) {
 					val = memory_read16(vm->memory, pc, &bound, NULL);
-					pc += 2;					
+					pc += 2;
 				}
 
-				itoa(val, number, 10);
+				sprintf(number, "%ld", val);
 				strcat(debugger->disasm, number);
 			}
 		} else {
 			strcat(debugger->disasm, "nop");
 		}
-		
+
 		strcat(debugger->disasm, "\n");
 	}
 }
@@ -153,28 +153,44 @@ void debugger_render(debugger_t *debugger, vm_t *vm) {
   }
   debugger_update_processes(debugger, vm);
   ImGui_ImplGlfwGL3_NewFrame();
-  {    
+  {
 		bool	opened = true;
 		int width, height;
 
 		glfwGetFramebufferSize(debugger->window, &width, &height);
-		ImGui::Begin("HolbertonWar", &opened, ImVec2(width, height), 1.0f,
+		ImGui::SetNextWindowPos(ImVec2(0, 0));
+		ImGui::SetNextWindowSize(ImVec2(width, height));
+		ImGui::Begin("HolbertonWar", &opened,
 			ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
-        
+
 			ImGui::ListBox("cores", &debugger->current_core,
-                       (const char **)cores_name, vm->core_count - 1, -1);
+                       (const char **)cores_name, vm->core_count - 1, 8);
+			ImGui::SameLine();
 			ImGui::ListBox("processes", &debugger->current_process,
 											 (const char **)debugger->processes_names,
-											 debugger->processes_count, -1);
-			if (debugger->current_process < debugger->processes_count && debugger->current_process >= 0) {
-				disasm(debugger, vm, debugger->processes[debugger->current_process]);
-				ImGui::InputTextMultiline("asm", debugger->disasm, 10000);
+											 debugger->processes_count, 8);
 
+			if (ImGui::Button("step")) {
+				vm->step = 1;
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("continue")) {
+				vm->step = -1;
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("pause")) {
+				vm->step = 0;
+			}
+			if (debugger->current_process < debugger->processes_count && debugger->current_process >= 0) {
+				process_t* process = debugger->processes[debugger->current_process];
+				disasm(debugger, vm, process, 14);
+				ImGui::InputTextMultiline("asm", debugger->disasm, 10000, ImVec2(-1.0f, ImGui::GetTextLineHeight() * 16), ImGuiInputTextFlags_ReadOnly);
+				vm->step_process = process;
 			}
     // ImGui::ListBox("processes", &debugger->current_process, [](void* data,
     // int idx, const char** out) -> bool {}, vm->cores[debugger->current_core]-
     // 1, -1);
-    
+
 
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
                 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
@@ -198,4 +214,3 @@ void debugger_destroy(debugger_t *debugger) {
 	free(debugger->processes);
   free(debugger);
 }
-	

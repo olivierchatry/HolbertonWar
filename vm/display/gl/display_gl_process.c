@@ -64,6 +64,11 @@ void display_gl_process_render(struct vm_s* vm, struct display_gl_s* display) {
 	int			i;
 	uint8*	process_counter;
 
+	v4_t 		selected_process_color[2] = {
+		{1.f, 1.f, 1.f, 1.f},
+		{1.f, 0.f, 0.f, 0.f},
+	};
+
 	process_counter = (uint8*)display->io_read_buffer;
 
 	v4_set(&color_io_process, 0.4f, 0.4f, 1.0f, 0.0f);
@@ -85,14 +90,22 @@ void display_gl_process_render(struct vm_s* vm, struct display_gl_s* display) {
 		process_t* process = vm->processes[i];
 		int index = process->pc;
 
-		if (process_counter[index] < DISPLAY_MAX_PROCES_PER_ADDRESS) {
+		if (process_counter[index] < DISPLAY_MAX_PROCES_PER_ADDRESS || (process == vm->step_process) ) {
 			mat4_t normal;
 			v4_t*	 color = (v4_t*)process->core->color;
+			float x, y, z;
 			
+			z = DISPLAY_CELL_SIZE * 0.5f;
+			if (process == vm->step_process && vm->step != -1) {
+				int current = (int) (display->total_time) % 2;
+				color = &selected_process_color[current];
+				z +=  DISPLAY_CELL_SIZE;
+			}
+
 			process->angle += (float)display->frame_delta;
 
-			float x = (float)(index % display->memory_stride);
-			float y = (float)(index / display->memory_stride);
+			x = (float)(index % display->memory_stride);
+			y = (float)(index / display->memory_stride);
 
 			process_counter[index]++;
 
@@ -100,7 +113,7 @@ void display_gl_process_render(struct vm_s* vm, struct display_gl_s* display) {
 			y = y * DISPLAY_CELL_SIZE + DISPLAY_CELL_SIZE * 0.5f;
 
 			mat4_ident(&translate);
-			mat4_translate(&translate, x, y, DISPLAY_CELL_SIZE * 0.5f);
+			mat4_translate(&translate, x, y, z);
 
 			quat_from_euler(&quat, process->angle, process->angle, process->angle);
 			quat_to_mat4(&quat, &rotation);

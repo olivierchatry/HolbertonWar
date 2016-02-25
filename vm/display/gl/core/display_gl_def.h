@@ -77,6 +77,7 @@ typedef struct display_gl_s
 
 	double		frame_last_time;
 	double		frame_delta;
+	double		total_time;
 
 	display_gl_mesh_renderer_t*	mesh_renderer;
 

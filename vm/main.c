@@ -156,27 +156,32 @@ int main(int ac, char** av) {
 			}
 		}
 
-		vm->cycle_current++;
-		vm->cycle_total++;
+		if (vm->step != 0) {
+			vm->cycle_current++;
+			vm->cycle_total++;
 
-
-		int32 process_count = vm->process_count;
-		for (i = 0; i < process_count; ++i) {
-			process_t* process = vm->processes[i];
-			process->cycle_wait--;
-			if (process->cycle_wait <= 0) {
-				vm_reset_process_io_op(process);
-				vm_execute(vm, process);
-				update_display = 1;
+			int32 process_count = vm->process_count;
+			for (i = 0; i < process_count; ++i) {
+				process_t* process = vm->processes[i];
+				process->cycle_wait--;
+				if (process->cycle_wait <= 0) {
+					vm_reset_process_io_op(process);
+					vm_execute(vm, process);
+					update_display = 1;
+					if (vm->step == 1 && (vm->step_process == NULL || vm->step_process == process) ) {
+						vm->step = 0;
+					}
+				}
 			}
-		}
 
-		if (vm->cycle_current > vm->cycle_to_die) {
-			vm->cycle_current = 0;
-			vm_kill_process_if_no_live(vm);
-			vm_clean_dead_process(vm);
+			if (vm->cycle_current > vm->cycle_to_die) {
+				vm->cycle_current = 0;
+				vm_kill_process_if_no_live(vm);
+				vm_clean_dead_process(vm);
+			}
+		} else {
+			update_display = 1;
 		}
-
 
 	#ifdef RENDER_GL
 		if (display_gl_update_input(display) || update_display)
@@ -196,7 +201,6 @@ int main(int ac, char** av) {
 		}
 		debugger_render(debugger, vm);
 	#endif
-
 	}
 
 	print_winning_core(vm);

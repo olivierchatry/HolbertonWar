@@ -49,6 +49,7 @@ typedef struct process_s
 
 	float					angle;
 	list_t*				stack;
+
 } process_t;
 
 
@@ -79,6 +80,9 @@ typedef struct vm_s
 	int32					dump_to_cycle;
 	int32					full_screen;
 	int32					big_endian;
+
+	int32					step;
+	process_t*		step_process;
 } vm_t;
 
 

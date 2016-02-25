@@ -172,8 +172,8 @@ int32 display_gl_update_input(display_gl_t* display) {
 	double 	delta = current_time - display->frame_last_time;
 	float		display_gl_zoom = display->display_gl_zoom;
 
-	display->frame_delta += delta;
-
+	display->frame_delta = delta;
+	display->total_time += delta;
 	display->frame_last_time = current_time;
 
 	glfwGetCursorPos(display->window, &mouse_cur_x, &mouse_cur_y);
