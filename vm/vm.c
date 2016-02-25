@@ -103,8 +103,6 @@ process_t*	vm_create_process(vm_t* vm, process_t* parent, int32 pc) {
 	process->memory_write_op_count = 0;
 	process->memory_read_op_count = 0;
 	process->current_opcode = NULL;
-	// new process always wait 1 more cycles.
-	process->cycle_wait ++;
 
 	process->cycle_create = vm->cycle_total;
 
@@ -224,8 +222,8 @@ int 				vm_check_opcode(vm_t* vm, process_t* process, int* args, int* regs, int*
 				if (reg <= 0 || reg > CORE_REGISTER_COUNT) {
 					return VM_ERROR_REGISTER;
 				}
-				args[i] = process->reg[reg - 1];
-				regs[i] = reg - 1;
+				args[i] = process->reg[reg];
+				regs[i] = reg;
 				pc++;
 			}
 			pc = memory_bound(pc, &process->core->bound);

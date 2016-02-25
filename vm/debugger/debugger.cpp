@@ -55,7 +55,7 @@ debugger_t *debugger_init(void* window) {
   glfwGetMonitorPhysicalSize(monitor, &widthMM, &heightMM);
   const GLFWvidmode *mode = glfwGetVideoMode(monitor);
   const float dpi = (float)mode->width / ((float)widthMM / 25.4f);
-  io.FontGlobalScale = dpi / 96.0f;
+  io.FontGlobalScale = (dpi / 96.0f) * 0.75f;
 
   ImGui_ImplGlfwGL3_Init(debugger->window, true);
   glfwSwapInterval(0);
@@ -81,7 +81,7 @@ void debugger_update_processes(debugger_t *debugger, vm_t *vm) {
 }
 
 void disasm(debugger_t* debugger, vm_t* vm, process_t* process, int instructions_count) {
-	int pc = process->pc;
+	int pc = process->next_pc;
 	int i, j;
 	bound_t bound;
 
@@ -94,7 +94,7 @@ void disasm(debugger_t* debugger, vm_t* vm, process_t* process, int instructions
 		int8			opcode;
 		int8			types;
 		long			val;
-		char			number[16];
+		char			number[32];
 		opcode_t* instruction;
 
 		opcode = vm->memory[pc++ % VM_MEMORY_SIZE];
@@ -189,10 +189,29 @@ void debugger_render(debugger_t *debugger, vm_t *vm) {
 				vm->step = 0;
 			}
 			if (debugger->current_process < debugger->processes_count && debugger->current_process >= 0) {
+				bool pin = false;
 				process_t* process = debugger->processes[debugger->current_process];
 				disasm(debugger, vm, process, 14);
-				ImGui::InputTextMultiline("asm", debugger->disasm, 10000, ImVec2(-1.0f, ImGui::GetTextLineHeight() * 16), ImGuiInputTextFlags_ReadOnly);
-				vm->step_process = process;
+				ImGui::BeginChild("proc", ImVec2(700, 400), true);
+					ImGui::BeginChild("Proc", ImVec2(400, 0));
+						ImGui::Checkbox("Pin", &pin);
+						ImGui::Text(" PC %0.8X ", process->pc);
+						ImGui::SameLine();
+						ImGui::Text("ZF %d", process->zero);
+						ImGui::Text(" WT %d", process->cycle_wait);
+						for (int i = 0; i < 16; ++i) {
+							if ((i) % 2) {
+								ImGui::SameLine();
+							}
+							ImGui::Text("R%0.2d %0.8X ", i + 1, process->reg[i]);
+						}
+					ImGui::EndChild();
+					ImGui::SameLine();
+					ImGui::BeginChild("asm", ImVec2(300, 0));
+						ImGui::InputTextMultiline("", debugger->disasm, 10000, ImVec2(-1.0f, ImGui::GetTextLineHeight() * 15), ImGuiInputTextFlags_ReadOnly);
+						vm->step_process = process;
+					ImGui::EndChild();
+				ImGui::EndChild();
 			}
     // ImGui::ListBox("processes", &debugger->current_process, [](void* data,
     // int idx, const char** out) -> bool {}, vm->cores[debugger->current_core]-

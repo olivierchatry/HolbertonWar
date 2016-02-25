@@ -169,8 +169,8 @@ int main(int ac, char** av) {
 					vm_reset_process_io_op(process);
 					vm_execute(vm, process);
 					update_display = 1;
-					if (vm->step == 1 && (vm->step_process == NULL || vm->step_process == process) ) {
-						vm->step = 0;
+					if (vm->step > 0 && (vm->step_process == NULL || vm->step_process == process) ) {
+						vm->step --;
 					}
 				}
 			}
@@ -202,8 +202,9 @@ int main(int ac, char** av) {
 			display_gl_step(vm, display);
 			display_gl_swap(display);
 		}
-		
-		debugger_render(debugger, vm);
+		if (vm->step <= 0) {
+			debugger_render(debugger, vm);
+		}
 	#endif
 	}
 
