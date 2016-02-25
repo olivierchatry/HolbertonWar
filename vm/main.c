@@ -141,9 +141,10 @@ int main(int ac, char** av) {
 #endif
 
 #ifdef RENDER_GL
-		display = display_gl_initialize(1980, 1080, vm->full_screen);
+	display = display_gl_initialize(1980, 1080, vm->full_screen);
+	debugger = debugger_init(display->window);
 #endif
-	debugger = debugger_init();
+
 	while (vm->process_count && !display_gl_should_exit(display)) {
 		int32 i;
 		int update_display = 0;

@@ -15,6 +15,7 @@ extern "C" {
 
 struct debugger_s {
   GLFWwindow*	window;
+	int					window_owner;
   int					current_core;
   int					current_process;
 	char*				disasm;
@@ -27,11 +28,15 @@ struct debugger_s {
 // process name will be it's 32bits id in hex
 #define MAX_PROCESS_NAME_SIZE 11
 
-debugger_t *debugger_init() {
+debugger_t *debugger_init(void* window) {
   debugger_t *debugger = (debugger_t *)malloc(sizeof(debugger_t));
   memset(debugger, 0, sizeof(debugger_t));
 
-  debugger->window = glfwCreateWindow(640, 480, "Debugger", NULL, NULL);
+	if (!window) {
+		debugger->window_owner = 1;
+		window = (void*) glfwCreateWindow(640, 480, "Debugger", NULL, NULL);
+	}
+  debugger->window = (GLFWwindow *) window;
   debugger->processes_name_buffer =(char *)malloc(MAX_PROCESS_NAME_SIZE * VM_MAX_PROCESSES);
   memset(debugger->processes_name_buffer, 0, MAX_PROCESS_NAME_SIZE * VM_MAX_PROCESSES);
   debugger->processes_names = (char **)malloc(sizeof(char **) * VM_MAX_PROCESSES);
@@ -41,7 +46,7 @@ debugger_t *debugger_init() {
     debugger->processes_names[i] = debugger->processes_name_buffer + i * MAX_PROCESS_NAME_SIZE;
   }
 
-  glfwMakeContextCurrent(debugger->window);
+  // glfwMakeContextCurrent(debugger->window);
   gl3wInit();
   ImGuiIO &io = ImGui::GetIO();
 
@@ -207,8 +212,9 @@ void debugger_render(debugger_t *debugger, vm_t *vm) {
 }
 
 void debugger_destroy(debugger_t *debugger) {
-
-  glfwDestroyWindow(debugger->window);
+	if (debugger->window_owner) {
+		glfwDestroyWindow(debugger->window);
+	}
 	free(debugger->processes_name_buffer);
 	free(debugger->disasm);
 	free(debugger->processes);
