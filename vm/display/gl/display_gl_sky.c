@@ -11,7 +11,7 @@
 void display_gl_sky_init(struct display_gl_s* display) {
 	int32								vertices_count;
 	mesh_definition_t*	def;
-	const float					size = 0.2;
+	const float					size = 1.0f;
 	v3_t								min = { -size, -size, -size};
 	v3_t								max = { size, size, size };
 	int8*								vb;

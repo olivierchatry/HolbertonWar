@@ -142,7 +142,7 @@ int main(int ac, char** av) {
 
 #ifdef RENDER_GL
 	display = display_gl_initialize(1980, 1080, vm->full_screen);
-	debugger = debugger_init(display->window);
+	debugger = debugger_init(NULL/*display_gl_get_window(display)*/);
 #endif
 
 	while (vm->process_count && !display_gl_should_exit(display)) {
@@ -185,7 +185,8 @@ int main(int ac, char** av) {
 		}
 
 	#ifdef RENDER_GL
-		if (display_gl_update_input(display) || update_display)
+		update_display |= display_gl_update_input(display);
+		if (update_display)
 		{
 			float y = 1;
 			y = display_gl_text(display, 0, y, 0xffffffff, "cycle to die   %d", vm->cycle_to_die);
@@ -199,7 +200,9 @@ int main(int ac, char** av) {
 				y = display_gl_text(display, 0, y, 0xffffffff, "%s %d", name, core->live_count);
 			}
 			display_gl_step(vm, display);
+			display_gl_swap(display);
 		}
+		
 		debugger_render(debugger, vm);
 	#endif
 	}

@@ -263,6 +263,10 @@ void display_gl_texts(struct vm_s* vm, display_gl_t* display) {
 	display_gl_text_clear(display->texts);
 }
 
+void*	display_gl_get_window(display_gl_t* display) {
+	return display->window;
+}
+
 void display_gl_step(struct vm_s* vm, display_gl_t* display) {
 	glfwMakeContextCurrent(display->window);
 	display_gl_camera_update(display);
@@ -290,7 +294,9 @@ void display_gl_step(struct vm_s* vm, display_gl_t* display) {
 	display_gl_live_render(vm, display);
 
 	display_gl_texts(vm, display);
+}
 
+void display_gl_swap(display_gl_t* display) {
 	glfwSwapBuffers(display->window);
 	glfwPollEvents();
 	display->frame_delta = 0;

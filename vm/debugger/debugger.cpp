@@ -161,12 +161,14 @@ void debugger_render(debugger_t *debugger, vm_t *vm) {
   {
 		bool	opened = true;
 		int width, height;
-
-		glfwGetFramebufferSize(debugger->window, &width, &height);
-		ImGui::SetNextWindowPos(ImVec2(0, 0));
-		ImGui::SetNextWindowSize(ImVec2(width, height));
-		ImGui::Begin("HolbertonWar", &opened,
-			ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+		int flag = 0;
+		if (debugger->window_owner) {
+			glfwGetFramebufferSize(debugger->window, &width, &height);
+			ImGui::SetNextWindowPos(ImVec2(0, 0));
+			ImGui::SetNextWindowSize(ImVec2((float)width, (float)height));
+			flag = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+		}
+		ImGui::Begin("HolbertonWar", &opened, flag);
 
 			ImGui::ListBox("cores", &debugger->current_core,
                        (const char **)cores_name, vm->core_count - 1, 8);
@@ -204,11 +206,14 @@ void debugger_render(debugger_t *debugger, vm_t *vm) {
   int display_w, display_h;
   glfwGetFramebufferSize(debugger->window, &display_w, &display_h);
   glViewport(0, 0, display_w, display_h);
-  glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
-  glClear(GL_COLOR_BUFFER_BIT);
-
+	if (debugger->window_owner) {
+		glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
+		glClear(GL_COLOR_BUFFER_BIT);
+	}
   ImGui::Render();
-  glfwSwapBuffers(debugger->window);
+	if (debugger->window_owner) {
+		glfwSwapBuffers(debugger->window);
+	}
 }
 
 void debugger_destroy(debugger_t *debugger) {
