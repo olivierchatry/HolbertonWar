@@ -143,7 +143,7 @@ int main(int ac, char** av) {
 #ifdef RENDER_GL
 		display = display_gl_initialize(1980, 1080, vm->full_screen);
 #endif
-	// debugger = debugger_init();
+	debugger = debugger_init();
 	while (vm->process_count && !display_gl_should_exit(display)) {
 		int32 i;
 		int update_display = 0;
@@ -194,13 +194,13 @@ int main(int ac, char** av) {
 			}
 			display_gl_step(vm, display);
 		}
-		// debugger_render(debugger, vm);
+		debugger_render(debugger, vm);
 	#endif
 
 	}
 
 	print_winning_core(vm);
-	// debugger_destroy(debugger);
+	debugger_destroy(debugger);
 #ifdef RENDER_GL
 	display_gl_destroy(display);
 #endif
