@@ -50,6 +50,10 @@ int parse_arguments(vm_t* vm, int ac, char** av) {
 			infos[current_core].address = strtol(av[++i], &end, 0), infos[i].have_address = 1;
 		else if (strcmp("-bc", av[i]) == 0)
 			vm->cycle_barrier = strtol(av[++i], &end, 0);
+		else if (strcmp("-dbg", av[i]) == 0)
+			vm->step = 1;
+		else if (strcmp("-dbg-same", av[i]) == 0)
+			vm->dbg_same_window = 1;
 		else if (strcmp("-fs", av[i]) == 0)
 			vm->full_screen = 1;
 		else {
@@ -124,6 +128,7 @@ int main(int ac, char** av) {
 	debugger_t*		debugger = NULL;
 
 	vm = vm_initialize();
+
 	if ( (parse_arguments(vm, ac, av) <= 0) || (check_core_endianess(vm) < 0)) {
 		return -1;
 	}
@@ -142,7 +147,9 @@ int main(int ac, char** av) {
 
 #ifdef RENDER_GL
 	display = display_gl_initialize(1980, 1080, vm->full_screen);
-	debugger = debugger_init(NULL/*display_gl_get_window(display)*/);
+	if (vm->step != -1) {
+		debugger = debugger_init(vm->dbg_same_window ? display_gl_get_window(display) : NULL);
+	}
 #endif
 
 	while (vm->process_count && !display_gl_should_exit(display)) {
@@ -162,8 +169,8 @@ int main(int ac, char** av) {
 			vm->cycle_total++;
 
 			int32 process_count = vm->process_count;
-			for (i = 0; i < process_count; ++i) {
-				process_t* process = vm->processes[i];
+			for (i = process_count; i > 0; --i) {
+				process_t* process = vm->processes[i - 1];
 				process->cycle_wait--;
 				if (process->cycle_wait <= 0) {
 					vm_reset_process_io_op(process);
@@ -202,14 +209,17 @@ int main(int ac, char** av) {
 			display_gl_step(vm, display);
 			display_gl_swap(display);
 		}
-		if (vm->step <= 0) {
+
+		if (debugger && vm->step != 1) {
 			debugger_render(debugger, vm);
 		}
 	#endif
 	}
 
 	print_winning_core(vm);
-	debugger_destroy(debugger);
+	if (debugger) {
+		debugger_destroy(debugger);
+	}
 #ifdef RENDER_GL
 	display_gl_destroy(display);
 #endif

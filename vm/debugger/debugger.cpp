@@ -23,6 +23,7 @@ struct debugger_s {
   char**			processes_names;
 	process_t**	processes;
   int					processes_count;
+	float				font_scale;
 };
 
 // process name will be it's 32bits id in hex
@@ -34,7 +35,7 @@ debugger_t *debugger_init(void* window) {
 
 	if (!window) {
 		debugger->window_owner = 1;
-		window = (void*) glfwCreateWindow(640, 480, "Debugger", NULL, NULL);
+		window = (void*) glfwCreateWindow(640, 640, "Debugger", NULL, NULL);
 	}
   debugger->window = (GLFWwindow *) window;
   debugger->processes_name_buffer =(char *)malloc(MAX_PROCESS_NAME_SIZE * VM_MAX_PROCESSES);
@@ -55,7 +56,8 @@ debugger_t *debugger_init(void* window) {
   glfwGetMonitorPhysicalSize(monitor, &widthMM, &heightMM);
   const GLFWvidmode *mode = glfwGetVideoMode(monitor);
   const float dpi = (float)mode->width / ((float)widthMM / 25.4f);
-  io.FontGlobalScale = (dpi / 96.0f) * 0.75f;
+  debugger->font_scale = 1.0f; // (dpi / 96.0f);
+	io.FontGlobalScale = debugger->font_scale;
 
   ImGui_ImplGlfwGL3_Init(debugger->window, true);
   glfwSwapInterval(0);
@@ -114,12 +116,10 @@ void disasm(debugger_t* debugger, vm_t* vm, process_t* process, int instructions
 				if (j > 0) {
 					strcat(debugger->disasm, ", ");
 				}
-
 				int8 type = TYPE(types, j);
 				if (type == CORE_ARG_TYPE_REG) {
 					val = vm->memory[pc++ % VM_MEMORY_SIZE] + 1;
 					strcat(debugger->disasm, "r");
-
 				} else if (type == CORE_ARG_TYPE_IMM) {
 					strcat(debugger->disasm, "%");
 					if (instruction->processing_flags & ASM_PROCESSING_IMM_AS_ADD) {
@@ -168,32 +168,28 @@ void debugger_render(debugger_t *debugger, vm_t *vm) {
 			ImGui::SetNextWindowSize(ImVec2((float)width, (float)height));
 			flag = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
 		}
+
 		ImGui::Begin("HolbertonWar", &opened, flag);
+			ImGui::BeginChild("selection", ImVec2(400 * debugger->font_scale, -1), true);
+				ImGui::ListBox("cores", &debugger->current_core,
+	                       (const char **)cores_name, vm->core_count - 1, 8);
+				ImGui::SameLine();
+				ImGui::ListBox("processes", &debugger->current_process,
+												 (const char **)debugger->processes_names,
+												 debugger->processes_count, 8);
+			 if ( ImGui::Button("step") ) vm->step = 1;
+			 ImGui::SameLine();
+			 if (ImGui::Button("continue")) vm->step = -1;
+			 ImGui::SameLine();
+			 if (ImGui::Button("pause")) vm->step = 0;
 
-			ImGui::ListBox("cores", &debugger->current_core,
-                       (const char **)cores_name, vm->core_count - 1, 8);
-			ImGui::SameLine();
-			ImGui::ListBox("processes", &debugger->current_process,
-											 (const char **)debugger->processes_names,
-											 debugger->processes_count, 8);
-
-			if (ImGui::Button("step")) {
-				vm->step = 1;
-			}
-			ImGui::SameLine();
-			if (ImGui::Button("continue")) {
-				vm->step = -1;
-			}
-			ImGui::SameLine();
-			if (ImGui::Button("pause")) {
-				vm->step = 0;
-			}
+			ImGui::EndChild();
 			if (debugger->current_process < debugger->processes_count && debugger->current_process >= 0) {
 				bool pin = false;
 				process_t* process = debugger->processes[debugger->current_process];
 				disasm(debugger, vm, process, 14);
-				ImGui::BeginChild("proc", ImVec2(700, 400), true);
-					ImGui::BeginChild("Proc", ImVec2(400, 0));
+				ImGui::BeginChild("proc", ImVec2(400 * debugger->font_scale, 300 * debugger->font_scale), true);
+					ImGui::BeginChild("Proc", ImVec2(200 * debugger->font_scale, 0));
 						ImGui::Checkbox("Pin", &pin);
 						ImGui::Text(" PC %0.8X ", process->pc);
 						ImGui::SameLine();
@@ -207,7 +203,7 @@ void debugger_render(debugger_t *debugger, vm_t *vm) {
 						}
 					ImGui::EndChild();
 					ImGui::SameLine();
-					ImGui::BeginChild("asm", ImVec2(300, 0));
+					ImGui::BeginChild("asm", ImVec2(200 * debugger->font_scale, 0));
 						ImGui::InputTextMultiline("", debugger->disasm, 10000, ImVec2(-1.0f, ImGui::GetTextLineHeight() * 15), ImGuiInputTextFlags_ReadOnly);
 						vm->step_process = process;
 					ImGui::EndChild();
@@ -232,6 +228,7 @@ void debugger_render(debugger_t *debugger, vm_t *vm) {
   ImGui::Render();
 	if (debugger->window_owner) {
 		glfwSwapBuffers(debugger->window);
+		glfwPollEvents();
 	}
 }
 

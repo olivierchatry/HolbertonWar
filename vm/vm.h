@@ -82,7 +82,9 @@ typedef struct vm_s
 	int32					big_endian;
 
 	int32					step;
+	int32					dbg_same_window;
 	process_t*		step_process;
+
 } vm_t;
 
 

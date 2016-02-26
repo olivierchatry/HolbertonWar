@@ -36,7 +36,8 @@ vm_t* vm_initialize() {
 	vm->processes = (process_t**) malloc(sizeof(process_t*) * VM_MAX_PROCESSES);
 	vm->processes_pool = (process_t**)malloc(sizeof(process_t*) * VM_MAX_PROCESSES);
 	vm->cores = (core_t**)malloc(sizeof(core_t*) * VM_MAX_CORES + 1);
-
+	vm->step = -1;
+	
 	// core[0] is "unknown" core, used when player "live" with a unknown id.
 	vm->cores[vm->core_count] = malloc(sizeof(core_t));
 	vm->cores[vm->core_count]->live_count = 0;
