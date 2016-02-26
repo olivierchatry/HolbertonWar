@@ -170,7 +170,7 @@ void debugger_render(debugger_t *debugger, vm_t *vm) {
 		}
 
 		ImGui::Begin("HolbertonWar", &opened, flag);
-			ImGui::BeginChild("selection", ImVec2(400 * debugger->font_scale, -1), true);
+			ImGui::BeginGroup();
 				ImGui::ListBox("cores", &debugger->current_core,
 	                       (const char **)cores_name, vm->core_count - 1, 8);
 				ImGui::SameLine();
@@ -183,13 +183,13 @@ void debugger_render(debugger_t *debugger, vm_t *vm) {
 			 ImGui::SameLine();
 			 if (ImGui::Button("pause")) vm->step = 0;
 
-			ImGui::EndChild();
+			ImGui::EndGroup();
 			if (debugger->current_process < debugger->processes_count && debugger->current_process >= 0) {
 				bool pin = false;
 				process_t* process = debugger->processes[debugger->current_process];
 				disasm(debugger, vm, process, 14);
-				ImGui::BeginChild("proc", ImVec2(400 * debugger->font_scale, 300 * debugger->font_scale), true);
-					ImGui::BeginChild("Proc", ImVec2(200 * debugger->font_scale, 0));
+				//ImGui::BeginChild("proc", ImVec2(400 * debugger->font_scale, 0.0f), true);
+					ImGui::BeginGroup();
 						ImGui::Checkbox("Pin", &pin);
 						ImGui::Text(" PC %0.8X ", process->pc);
 						ImGui::SameLine();
@@ -201,13 +201,13 @@ void debugger_render(debugger_t *debugger, vm_t *vm) {
 							}
 							ImGui::Text("R%0.2d %0.8X ", i + 1, process->reg[i]);
 						}
-					ImGui::EndChild();
+					ImGui::EndGroup();
 					ImGui::SameLine();
-					ImGui::BeginChild("asm", ImVec2(200 * debugger->font_scale, 0));
-						ImGui::InputTextMultiline("", debugger->disasm, 10000, ImVec2(-1.0f, ImGui::GetTextLineHeight() * 15), ImGuiInputTextFlags_ReadOnly);
+					//ImGui::BeginChild("asm", ImVec2(200 * debugger->font_scale, 0.0f));
+						ImGui::InputTextMultiline("", debugger->disasm, 10000, ImVec2(200, ImGui::GetTextLineHeight() * 15), ImGuiInputTextFlags_ReadOnly);
 						vm->step_process = process;
-					ImGui::EndChild();
-				ImGui::EndChild();
+					//ImGui::EndChild();
+				//ImGui::EndChild();
 			}
     // ImGui::ListBox("processes", &debugger->current_process, [](void* data,
     // int idx, const char** out) -> bool {}, vm->cores[debugger->current_core]-
