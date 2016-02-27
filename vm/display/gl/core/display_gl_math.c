@@ -138,7 +138,7 @@ void  mat4_ortho(mat4_t* mat, float l, float r, float b, float t, float n, float
 }
 
 void mat4_perspective(mat4_t* mat, float fovy, float aspect, float near, float far) {
-    float f = 1.0 / tanf(fovy / 2),
+    float f = 1.0f / tanf(fovy / 2),
         nf = 1 / (near - far);
     mat->mat.v[0] = f / aspect;
     mat->mat.v[1] = 0;

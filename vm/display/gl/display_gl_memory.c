@@ -5,6 +5,7 @@
 #include "display_gl_memory.h"
 #include "display_gl_grid.h"
 #include "../../vm.h"
+#include "../../data.h"
 
 
 void display_gl_memory_init(struct display_gl_s* display) {

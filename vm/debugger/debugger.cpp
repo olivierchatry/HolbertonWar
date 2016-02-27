@@ -3,6 +3,8 @@
 
 extern "C" {
 #include "../vm.h"
+#include "../data.h"
+
 }
 
 #include "debugger.h"
@@ -24,6 +26,7 @@ struct debugger_s {
 	process_t**	processes;
   int					processes_count;
 	float				font_scale;
+	int					font_size;
 };
 
 // process name will be it's 32bits id in hex
@@ -56,10 +59,15 @@ debugger_t *debugger_init(void* window) {
   glfwGetMonitorPhysicalSize(monitor, &widthMM, &heightMM);
   const GLFWvidmode *mode = glfwGetVideoMode(monitor);
   const float dpi = (float)mode->width / ((float)widthMM / 25.4f);
-  debugger->font_scale = 1.0f; // (dpi / 96.0f);
-	io.FontGlobalScale = debugger->font_scale;
+  debugger->font_scale = (dpi / 96.0f);
+	debugger->font_size = 12;
+	ImFontConfig config;
+	config.OversampleH = 4;
+	config.OversampleV = 2;
+	io.Fonts->AddFontFromFileTTF(FONT("DroidSansMono.ttf"), debugger->font_size * debugger->font_scale, &config);
 
   ImGui_ImplGlfwGL3_Init(debugger->window, true);
+
   glfwSwapInterval(0);
 
   return debugger;
@@ -187,32 +195,30 @@ void debugger_render(debugger_t *debugger, vm_t *vm) {
 			if (debugger->current_process < debugger->processes_count && debugger->current_process >= 0) {
 				bool pin = false;
 				process_t* process = debugger->processes[debugger->current_process];
-				disasm(debugger, vm, process, 14);
+				disasm(debugger, vm, process, 12);
 				//ImGui::BeginChild("proc", ImVec2(400 * debugger->font_scale, 0.0f), true);
+				ImGui::BeginGroup();
+					ImGui::Checkbox("Pin", &pin);
 					ImGui::BeginGroup();
-						ImGui::Checkbox("Pin", &pin);
-						ImGui::Text(" PC %0.8X ", process->pc);
-						ImGui::SameLine();
-						ImGui::Text("ZF %d", process->zero);
-						ImGui::Text(" WT %d", process->cycle_wait);
-						for (int i = 0; i < 16; ++i) {
-							if ((i) % 2) {
-								ImGui::SameLine();
+							ImGui::Text(" PC %0.8X ", process->pc);
+							ImGui::SameLine();
+							ImGui::Text("ZF %d", process->zero);
+							ImGui::Text(" WT %d", process->cycle_wait);
+							for (int i = 0; i < 16; ++i) {
+								if ((i) % 2) {
+									ImGui::SameLine();
+								}
+								ImGui::Text("R%0.2d %0.8X ", i + 1, process->reg[i]);
 							}
-							ImGui::Text("R%0.2d %0.8X ", i + 1, process->reg[i]);
-						}
 					ImGui::EndGroup();
 					ImGui::SameLine();
-					//ImGui::BeginChild("asm", ImVec2(200 * debugger->font_scale, 0.0f));
-						ImGui::InputTextMultiline("", debugger->disasm, 10000, ImVec2(200, ImGui::GetTextLineHeight() * 15), ImGuiInputTextFlags_ReadOnly);
+					ImGui::InputTextMultiline("", 
+						debugger->disasm, 10000, 
+						ImVec2(10 * debugger->font_size * debugger->font_scale, ImGui::GetTextLineHeightWithSpacing() * 10), 
+						ImGuiInputTextFlags_ReadOnly);
 						vm->step_process = process;
-					//ImGui::EndChild();
-				//ImGui::EndChild();
+				ImGui::EndGroup();
 			}
-    // ImGui::ListBox("processes", &debugger->current_process, [](void* data,
-    // int idx, const char** out) -> bool {}, vm->cores[debugger->current_core]-
-    // 1, -1);
-
 
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
                 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);

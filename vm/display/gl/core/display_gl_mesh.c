@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #include "display_gl_def.h"
+#include "../../../data.h"
 
 typedef struct s_mesh_vn
 {

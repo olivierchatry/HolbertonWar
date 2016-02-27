@@ -7,6 +7,7 @@
 
 #include "core/display_gl_mesh_generator.h"
 #include "../../vm.h"
+#include "../../data.h"
 
 
 void display_gl_live_init(struct display_gl_s* display) {
