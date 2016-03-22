@@ -27,6 +27,9 @@ struct debugger_s {
   int					processes_count;
 	float				font_scale;
 	int					font_size;
+
+	int					step_key_pressed;
+
 };
 
 // process name will be it's 32bits id in hex
@@ -91,7 +94,7 @@ void debugger_update_processes(debugger_t *debugger, vm_t *vm) {
 }
 
 void disasm(debugger_t* debugger, vm_t* vm, process_t* process, int instructions_count) {
-	int pc = process->next_pc;
+	int pc = process->pc;
 	int i, j;
 	bound_t bound;
 
@@ -154,6 +157,35 @@ void disasm(debugger_t* debugger, vm_t* vm, process_t* process, int instructions
 	}
 }
 
+void debugger_display_process(debugger_t *debugger, vm_t *vm, process_t* process) {
+	disasm(debugger, vm, process, 12);
+	bool pinned = process->pinned == 1;
+	//ImGui::BeginChild("proc", ImVec2(400 * debugger->font_scale, 0.0f), true);
+	ImGui::BeginGroup();
+
+		ImGui::Checkbox("Pin", &pinned);
+
+		process->pinned = pinned ? 1 : 0;
+		printf("%d\n", process->pinned);
+		ImGui::BeginGroup();
+				ImGui::Text(" PC %0.8X ", process->pc);
+				ImGui::SameLine();
+				ImGui::Text("ZF %d", process->zero);
+				ImGui::Text(" WT %d", process->cycle_wait);
+				for (int i = 0; i < 16; ++i) {
+					if ((i) % 2) {
+						ImGui::SameLine();
+					}
+					ImGui::Text("R%0.2d %0.8X ", i + 1, process->reg[i]);
+				}
+		ImGui::EndGroup();
+		ImGui::SameLine();
+		ImGui::InputTextMultiline("",
+			debugger->disasm, 10000,
+			ImVec2(10 * debugger->font_size * debugger->font_scale, ImGui::GetTextLineHeightWithSpacing() * 10),
+			ImGuiInputTextFlags_ReadOnly);
+	ImGui::EndGroup();
+}
 void debugger_render(debugger_t *debugger, vm_t *vm) {
   bool show_test_window = true;
 
@@ -170,6 +202,8 @@ void debugger_render(debugger_t *debugger, vm_t *vm) {
 		bool	opened = true;
 		int width, height;
 		int flag = 0;
+		int step_pressed = glfwGetKey(debugger->window, GLFW_KEY_F11);
+
 		if (debugger->window_owner) {
 			glfwGetFramebufferSize(debugger->window, &width, &height);
 			ImGui::SetNextWindowPos(ImVec2(0, 0));
@@ -185,40 +219,36 @@ void debugger_render(debugger_t *debugger, vm_t *vm) {
 				ImGui::ListBox("processes", &debugger->current_process,
 												 (const char **)debugger->processes_names,
 												 debugger->processes_count, 8);
-			 if ( ImGui::Button("step") ) vm->step = 1;
-			 ImGui::SameLine();
-			 if (ImGui::Button("continue")) vm->step = -1;
-			 ImGui::SameLine();
-			 if (ImGui::Button("pause")) vm->step = 0;
-
-			ImGui::EndGroup();
-			if (debugger->current_process < debugger->processes_count && debugger->current_process >= 0) {
-				bool pin = false;
-				process_t* process = debugger->processes[debugger->current_process];
-				disasm(debugger, vm, process, 12);
-				//ImGui::BeginChild("proc", ImVec2(400 * debugger->font_scale, 0.0f), true);
-				ImGui::BeginGroup();
-					ImGui::Checkbox("Pin", &pin);
-					ImGui::BeginGroup();
-							ImGui::Text(" PC %0.8X ", process->pc);
-							ImGui::SameLine();
-							ImGui::Text("ZF %d", process->zero);
-							ImGui::Text(" WT %d", process->cycle_wait);
-							for (int i = 0; i < 16; ++i) {
-								if ((i) % 2) {
-									ImGui::SameLine();
-								}
-								ImGui::Text("R%0.2d %0.8X ", i + 1, process->reg[i]);
-							}
-					ImGui::EndGroup();
-					ImGui::SameLine();
-					ImGui::InputTextMultiline("", 
-						debugger->disasm, 10000, 
-						ImVec2(10 * debugger->font_size * debugger->font_scale, ImGui::GetTextLineHeightWithSpacing() * 10), 
-						ImGuiInputTextFlags_ReadOnly);
-						vm->step_process = process;
-				ImGui::EndGroup();
+			if ( ImGui::Button("step") || (!debugger->step_key_pressed && step_pressed) || (debugger->step_key_pressed == GLFW_REPEAT) ) {
+				vm->step = 1;
 			}
+			ImGui::SameLine();
+			if (ImGui::Button("continue")) {
+				vm->step = -1;
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("pause")) {
+				vm->step = 0;
+			}
+			ImGui::EndGroup();
+			process_t* current_process = NULL;
+			if (debugger->current_process < debugger->processes_count && debugger->current_process >= 0) {
+				current_process = debugger->processes[debugger->current_process];
+				debugger_display_process(debugger, vm, current_process);
+				vm->step_process = current_process;
+			}
+
+			int current_core = debugger->current_core + 1;
+			if (current_core > 0 && current_core < vm->core_count) {
+				core_t *core = vm->cores[current_core];
+				for (int i = 0; i < vm->process_count; ++i) {
+					process_t *process = vm->processes[i];
+					if (process->pinned && process != current_process) {
+						debugger_display_process(debugger, vm, process);
+					}
+				}
+			}
+			debugger->step_key_pressed = step_pressed;
 
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
                 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);

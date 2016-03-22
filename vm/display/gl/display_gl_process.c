@@ -94,7 +94,7 @@ void display_gl_process_render(struct vm_s* vm, struct display_gl_s* display) {
 			mat4_t normal;
 			v4_t*	 color = (v4_t*)process->core->color;
 			float x, y, z;
-			
+
 			z = DISPLAY_CELL_SIZE * 0.5f;
 			if (process == vm->step_process && vm->step != -1) {
 				int current = (int) (display->total_time) % 2;
@@ -117,13 +117,13 @@ void display_gl_process_render(struct vm_s* vm, struct display_gl_s* display) {
 
 			quat_from_euler(&quat, process->angle, process->angle, process->angle);
 			quat_to_mat4(&quat, &rotation);
-			mat4_invert(&rotation, &normal);
-			mat4_transpose(&normal, &normal);
+			//mat4_invert(&rotation, &normal);
+			//mat4_transpose(&normal, &normal);
 			mat4_mul(&translate, &rotation, &local);
 
 			display_gl_mesh_set_diffuse(display->mesh_renderer, color);
 			display_gl_mesh_set_local(display->mesh_renderer, &local);
-			display_gl_mesh_set_normal(display->mesh_renderer, &normal);
+			display_gl_mesh_set_normal(display->mesh_renderer, &rotation);
 
 			display_gl_mesh_render(display->process_mesh);
 		}

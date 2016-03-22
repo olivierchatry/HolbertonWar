@@ -48,8 +48,8 @@ typedef struct process_s
 	memory_callback_t memory_callback;
 
 	float					angle;
-	list_t*				stack;
-
+	
+	int						pinned;
 } process_t;
 
 

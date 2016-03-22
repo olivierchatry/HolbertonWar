@@ -37,7 +37,7 @@ vm_t* vm_initialize() {
 	vm->processes_pool = (process_t**)malloc(sizeof(process_t*) * VM_MAX_PROCESSES);
 	vm->cores = (core_t**)malloc(sizeof(core_t*) * VM_MAX_CORES + 1);
 	vm->step = -1;
-	
+
 	// core[0] is "unknown" core, used when player "live" with a unknown id.
 	vm->cores[vm->core_count] = malloc(sizeof(core_t));
 	vm->cores[vm->core_count]->live_count = 0;
@@ -104,7 +104,7 @@ process_t*	vm_create_process(vm_t* vm, process_t* parent, int32 pc) {
 	process->memory_write_op_count = 0;
 	process->memory_read_op_count = 0;
 	process->current_opcode = NULL;
-
+	process->pinned = 0;
 	process->cycle_create = vm->cycle_total;
 
 	vm->processes[vm->process_count++] = process;
@@ -223,8 +223,8 @@ int 				vm_check_opcode(vm_t* vm, process_t* process, int* args, int* regs, int*
 				if (reg <= 0 || reg > CORE_REGISTER_COUNT) {
 					return VM_ERROR_REGISTER;
 				}
-				args[i] = process->reg[reg];
-				regs[i] = reg;
+				args[i] = process->reg[reg - 1];
+				regs[i] = reg - 1;
 				pc++;
 			}
 			pc = memory_bound(pc, &process->core->bound);

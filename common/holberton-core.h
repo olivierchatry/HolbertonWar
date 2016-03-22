@@ -66,9 +66,9 @@ opcode_t* holberton_core_get_opcodes();
 #define VM_MAX_CORES			4
 
 #define VM_MEMORY_SIZE		(12*1024)
-#define VM_CYCLE_DELTA		5
+#define VM_CYCLE_DELTA		4
 #define VM_CYCLE_TO_DIE		1536
-#define VM_LIVE_COUNT			40
+#define VM_LIVE_COUNT			2048
 
 #define VM_MEMORY_MODULO	512
 
