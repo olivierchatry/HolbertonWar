@@ -16,7 +16,7 @@ int memory_bound(int offset, bound_t* bound) {
 	if (bound) {
 		int end = bound->start + bound->size;
 		while (offset < bound->start) offset = (bound->size + offset);
-		while (offset > end) offset -= bound->size;
+		while (offset >= end) offset -= bound->size;
 	}
 	return offset;
 }
